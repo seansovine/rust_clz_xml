@@ -9,25 +9,15 @@
 
 use std::env;
 use std::fs::File;
+use std::io::BufRead;
 use std::io::BufReader;
 use std::str;
 
 use quick_xml::events::Event;
 use quick_xml::reader::Reader;
 
-fn main() -> std::io::Result<()> {
-    // Open XML file.
-    let args: Vec<String> = env::args().collect();
-    let file_path = &args[1];
-    let file = File::open(file_path)?;
-
-    // Create buffered reader.
-    let mut reader = BufReader::new(file);
-    // Create quick-xml reader.
-    let mut reader = Reader::from_reader(&mut reader);
-
-    /// Try reading the XML!
-
+/// Try reading the XML!
+fn read_xml<T: BufRead>(mut reader: Reader<&mut T>) -> std::io::Result<()> {
     let mut buffer = Vec::new();
     let mut count: u32 = 0;
 
@@ -80,4 +70,19 @@ fn main() -> std::io::Result<()> {
     println!("Found {} 'book' start tags.", count);
 
     return Ok(());
+}
+
+fn main() -> std::io::Result<()> {
+    // Open XML file.
+    let args: Vec<String> = env::args().collect();
+    let file_path = &args[1];
+    let file = File::open(file_path)?;
+
+    // Create buffered reader.
+    let mut reader = BufReader::new(file);
+    // Create quick-xml reader.
+    let reader = Reader::from_reader(&mut reader);
+
+    let result = read_xml(reader);
+    result
 }
