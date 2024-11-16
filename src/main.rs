@@ -11,6 +11,8 @@ use std::env;
 use std::fs::File;
 use std::io::BufRead;
 use std::io::BufReader;
+use std::sync::mpsc;
+use std::sync::mpsc::Sender;
 use std::str;
 use std::thread;
 
@@ -59,8 +61,12 @@ fn update_state_on_end(state: ParseState, tag_name: &str) -> ParseState {
     }
 }
 
+struct Book {
+    title: String,
+}
+
 /// Read the XML!
-fn read_xml<T: BufRead>(mut reader: Reader<T>) -> std::io::Result<()> {
+fn read_xml<T: BufRead>(mut reader: Reader<T>, sender: Sender<Book>) -> std::io::Result<()> {
     let mut buffer = Vec::new();
     let mut count: u32 = 0;
 
@@ -90,7 +96,9 @@ fn read_xml<T: BufRead>(mut reader: Reader<T>) -> std::io::Result<()> {
                     Event::Text(e) => {
                         if parse_state == ParseState::TitleTag {
                             let text = e.unescape().unwrap().into_owned();
-                            println!("Found book with title: '{}'", text);
+                            output(&format!("Found book with title: '{}'", text));
+
+                            sender.send(Book { title: text }).unwrap();
                         }
                     }
 
@@ -128,9 +136,16 @@ fn main() -> std::io::Result<()> {
     // Create quick-xml reader.
     let reader = Reader::from_reader(reader);
 
+    let (sender, receiver) = mpsc::channel::<Book>();
+
     let handle = thread::spawn(move || {
-        read_xml(reader)
+        read_xml(reader, sender)
     });
+
+    // Read books until channel closes, at end of read_xml.
+    for book in receiver {
+        println!("Found book with title: '{}'", book.title);
+    }
 
     let result = handle.join().unwrap();
     result
