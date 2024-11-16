@@ -1,25 +1,23 @@
-# Rust CLZ XML Reader
+# Rust CLZ Data Reader
 
-This is a simple program using `quick-xml` to read the 
-data from a CLZ book XML export file. 
+I use CLZ books to keep track of my paper books collection.
+This is an app to read the data in the CLZ library export XML
+file and work with it in various ways. It is WIP. It's partly
+for my own use, because I like the CLZ mobile app for cataloging
+books, and partly an excuse to try out some nice software
+development tools.
 
-## Sources:
+Currently it uses `quick-xml` to parse the XML text input file.
+It has a simple state machine to pick out the `<title>` tags
+within `<book>` tags. We will expand this to pick out other data
+we want to extract from book records.
 
-The use of quick-xml was inspired by
+It launches a thread to do the parsing, sending the book data
+it finds back to the main thread over a channel. This allows for
+cleaner code now, but we will add more features, like a database
+connection to store the data and a basic TUI.
 
-+ [Capnfabs example](https://capnfabs.net/posts/parsing-huge-xml-quickxml-rust-serde/)
-
-but mostly based on the simple example from the docs,
-
-+ [Reader docs](https://docs.rs/quick-xml/latest/quick_xml/reader/struct.Reader.html)
-
-## TODO:
-
-- Understand how `read_event_into` works.
-- Do some work to start saving the data into structures.
-- Start structuring this project in a better way.
-- Consider moving this to a separate thread so we can report and control.
-- Consider adding some neat TUI. (See Bottom for ideas.)
-- Look into connecting to a database to load the data into.
-- Make a Golang server that connects to the database and serves some kind of info,
-  or a Golang TUI with Bubbletea that allows the users to browse the data.
+As the project grows we will restructure it. We also plan to try
+out different options for allow the user to interact with the
+data. Some ideas are a Golang TUI using Bubbletea, which we think
+is nice, or a web API and/or app using some nice current stack.
