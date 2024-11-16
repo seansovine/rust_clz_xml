@@ -12,14 +12,59 @@ use std::fs::File;
 use std::io::BufRead;
 use std::io::BufReader;
 use std::str;
+use std::thread;
 
 use quick_xml::events::Event;
 use quick_xml::reader::Reader;
 
-/// Try reading the XML!
-fn read_xml<T: BufRead>(mut reader: Reader<&mut T>) -> std::io::Result<()> {
+static DEBUG_OUT: bool = false;
+
+fn output(message: &str) {
+    if DEBUG_OUT {
+        println!("{}", message);
+    }
+}
+
+/// We use a simple state machine to find the title text.
+#[derive(PartialEq, Debug)]
+enum ParseState {
+    BookTag,
+    TitleTag,
+    OtherTag
+}
+
+fn update_state_on_start(state: ParseState, tag_name: &str) -> ParseState {
+    match state {
+        ParseState::BookTag => match tag_name {
+            "title" => ParseState::TitleTag,
+            _ => ParseState::BookTag
+        }
+
+        _ => match tag_name {
+            "book" => ParseState::BookTag,
+            _ => ParseState::OtherTag
+        }
+    }
+}
+
+fn update_state_on_end(state: ParseState, tag_name: &str) -> ParseState {
+    match state {
+        ParseState::TitleTag => ParseState::BookTag,
+
+        ParseState::BookTag => match tag_name {
+            "book" => ParseState::OtherTag,
+            _ => ParseState::BookTag
+        }
+        _ => state
+    }
+}
+
+/// Read the XML!
+fn read_xml<T: BufRead>(mut reader: Reader<T>) -> std::io::Result<()> {
     let mut buffer = Vec::new();
     let mut count: u32 = 0;
+
+    let mut parse_state: ParseState = ParseState::OtherTag;
 
     // Based on the simple example from the docs. for Reader.
     loop {
@@ -33,32 +78,32 @@ fn read_xml<T: BufRead>(mut reader: Reader<&mut T>) -> std::io::Result<()> {
 
                     Event::Start(e) => {
                         let q_name = e.name();
-                        let name = str::from_utf8(q_name.as_ref()).unwrap_or_else(|_| {
-                            println!("Unable to decode name.");
-                            ""
-                        });
-                        println!("Tag with name: '{}'", name);
+                        let name = str::from_utf8(q_name.as_ref()).unwrap();
+                        output(&format!("Start tag with name: '{}'", name));
                         if name == "book" {
                             count += 1;
                         }
+
+                        parse_state = update_state_on_start(parse_state, name);
                     }
 
                     Event::Text(e) => {
-                        let text = e.unescape().unwrap().into_owned();
-                        println!("Found text: '{}'", text);
+                        if parse_state == ParseState::TitleTag {
+                            let text = e.unescape().unwrap().into_owned();
+                            println!("Found book with title: '{}'", text);
+                        }
                     }
 
                     Event::End(e) => {
                         let q_name = e.name();
-                        let name = str::from_utf8(q_name.as_ref()).unwrap_or_else(|_| {
-                            println!("Unable to decode name.");
-                            ""
-                        });
-                        println!("Tag with name: {}", name);
+                        let name = str::from_utf8(q_name.as_ref()).unwrap();
+                        output(&format!("End tag with name: '{}'", name));
+
+                        parse_state = update_state_on_end(parse_state, name);
                     }
 
                     // There are several other `Event`s we do not consider here
-                    _ => println!("Event okay but unknown type."),
+                    _ => output("Event okay but unknown type."),
                 }
             }
         }
@@ -79,10 +124,14 @@ fn main() -> std::io::Result<()> {
     let file = File::open(file_path)?;
 
     // Create buffered reader.
-    let mut reader = BufReader::new(file);
+    let reader = BufReader::new(file);
     // Create quick-xml reader.
-    let reader = Reader::from_reader(&mut reader);
+    let reader = Reader::from_reader(reader);
 
-    let result = read_xml(reader);
+    let handle = thread::spawn(move || {
+        read_xml(reader)
+    });
+
+    let result = handle.join().unwrap();
     result
 }
