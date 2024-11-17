@@ -3,3 +3,5 @@ build:
 
 run:
 	@./bin/db-util
+
+build_run: build run

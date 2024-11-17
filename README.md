@@ -2,51 +2,37 @@
 
 I use CLZ books to keep track of my paper books collection.
 This is an app to read the data in the CLZ library export XML
-file and work with it in various ways. It is WIP. It's partly
+file and work with it in various ways. It is WIP. This is partly
 for my own use, because I like the CLZ mobile app for cataloging
 books, and partly an excuse to try out some nice software
 development tools.
 
-Currently it uses `quick-xml` to parse the XML text input file.
-It has a simple state machine to pick out the `<title>` tags
-within `<book>` tags. We will expand this to pick out other data
-we want to extract from book records.
-
-It launches a thread to do the parsing, sending the book data
-it finds back to the main thread over a channel. This allows for
-cleaner code now, but we will add more features, like a database
-connection to store the data and a basic TUI. Having a
-multithreaded architecture will be useful for these.
-
-As the project grows we will restructure it. We also plan to try
-out different options for allowing the user to interact with the
-data. Some ideas are a Golang TUI using Bubbletea, which we think
-is nice, or a web API and/or app using some nice current stack.
+See the `src` folder [README](src/README.md) for some notes on
+the design of the Rust program that reads the CLZ data XML file.
 
 ## Database
 
-We have added a Docker Compose service (defined in `compose.yaml`)
-with a containerized MariaDB database. It is setup with the following
-config parameters:
+Notes on our database Docker Compose setup can be found [here](database/README.md).
 
-+ root password `p@ssw0rd`
-+ main user `mariadb`
-+ main user password `p@ssw0rd`
-+ default database `collection`
+__To start the database:__
 
-It has persistent storage when stopped and restarted, by saving the
-container's `/var/lib/mysql` directory to the `dbdata` subfolder on 
-the host.
-
-If you have the MariaDB client library installed you can access
-the containerized database using the command
+In the project root, assuming you have Docker installed, run
 
 ```shell
-mariadb -h localhost -P 3306 -u mariadb -p
+docker compose up
 ```
-or using an appropriate connector library for your language.
 
-Soon we will add a utility to interface with the database, to
-simplify setting up and resetting the schema. Then we will start
-inserting data from the CLZ file into the database and add
-interfaces to view and update the data in various ways.
+The first time you run this it will create an empty `collection` database.
+
+__Setting up / resetting the database:__
+
+The `db-util` folder has a SQL script to dump all data and reset the
+schema, and a little Go program to connect to the database and run it.
+See that folder's [README](database/README.md).
+
+## Next
+
+Soon we will start inserting data from the CLZ file into the database
+and try out some apps and APIs to view and update the data in various ways.
+Some ideas are a web app, maybe with a Deno server, or a Golang TUI
+using Bubbletea, which we think is cool.
