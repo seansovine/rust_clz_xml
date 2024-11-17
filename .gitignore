@@ -1,4 +1,8 @@
 data/book*
-target/
+
 dbdata/
+
+target/
+bin/
+
 .idea
