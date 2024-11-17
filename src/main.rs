@@ -35,34 +35,54 @@ enum ParseState {
     OtherTag
 }
 
-fn update_state_on_start(state: ParseState, tag_name: &str) -> ParseState {
+fn update_state_on_start(state: ParseState, tag_name: &str, current_book: & mut Option<Book>) -> ParseState {
     match state {
         ParseState::BookTag => match tag_name {
             "title" => ParseState::TitleTag,
+
             _ => ParseState::BookTag
         }
 
         _ => match tag_name {
-            "book" => ParseState::BookTag,
+            "book" => {
+                *current_book = Book::new_option();
+                ParseState::BookTag
+            }
+
             _ => ParseState::OtherTag
         }
     }
 }
 
-fn update_state_on_end(state: ParseState, tag_name: &str) -> ParseState {
+fn update_state_on_end(state: ParseState, tag_name: &str) -> (ParseState, bool) {
     match state {
-        ParseState::TitleTag => ParseState::BookTag,
+        ParseState::TitleTag => (ParseState::BookTag, false),
 
         ParseState::BookTag => match tag_name {
-            "book" => ParseState::OtherTag,
-            _ => ParseState::BookTag
+            "book" => (ParseState::OtherTag, true),
+
+            _ => (ParseState::BookTag, false)
         }
-        _ => state
+
+        _ => (state, false)
     }
+}
+
+struct Author {
+    first_name: String,
+    middle_name: String,
+    last_name: String,
 }
 
 struct Book {
     title: String,
+    authors: Vec<Author>,
+}
+
+impl Book {
+    pub fn new_option() -> Option<Book> {
+        Some(Book{ title: String::default(), authors: Vec::default() })
+    }
 }
 
 /// Read the XML!
@@ -71,6 +91,7 @@ fn read_xml<T: BufRead>(mut reader: Reader<T>, sender: Sender<Book>) -> std::io:
     let mut count: u32 = 0;
 
     let mut parse_state: ParseState = ParseState::OtherTag;
+    let mut current_book: Option<Book> = None;
 
     // Based on the simple example from the docs. for Reader.
     loop {
@@ -90,7 +111,7 @@ fn read_xml<T: BufRead>(mut reader: Reader<T>, sender: Sender<Book>) -> std::io:
                             count += 1;
                         }
 
-                        parse_state = update_state_on_start(parse_state, name);
+                        parse_state = update_state_on_start(parse_state, name, &mut current_book);
                     }
 
                     Event::Text(e) => {
@@ -98,7 +119,7 @@ fn read_xml<T: BufRead>(mut reader: Reader<T>, sender: Sender<Book>) -> std::io:
                             let text = e.unescape().unwrap().into_owned();
                             output(&format!("Found book with title: '{}'", text));
 
-                            sender.send(Book { title: text }).unwrap();
+                            current_book.as_mut().unwrap().title = text;
                         }
                     }
 
@@ -107,7 +128,12 @@ fn read_xml<T: BufRead>(mut reader: Reader<T>, sender: Sender<Book>) -> std::io:
                         let name = str::from_utf8(q_name.as_ref()).unwrap();
                         output(&format!("End tag with name: '{}'", name));
 
-                        parse_state = update_state_on_end(parse_state, name);
+                        let ready_to_send;
+                        (parse_state, ready_to_send) = update_state_on_end(parse_state, name);
+
+                        if ready_to_send {
+                            sender.send(current_book.take().unwrap()).unwrap()
+                        }
                     }
 
                     // There are several other `Event`s we do not consider here
