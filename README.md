@@ -27,23 +27,26 @@ is nice, or a web API and/or app using some nice current stack.
 
 We have added a Docker Compose service (defined in `compose.yaml`)
 with a containerized MariaDB database. It is setup with the following
-config:
+config parameters:
 
 + root password `p@ssw0rd`
 + main user `mariadb`
-+ main user password `mariadb`
++ main user password `p@ssw0rd`
 + default database `collection`
 
-It is setup to have persistent storage, by saving its `/var/lib/mysql`
-directory to the `dbdata` subfolder on the host.
+It has persistent storage when stopped and restarted, by saving the
+container's `/var/lib/mysql` directory to the `dbdata` subfolder on 
+the host.
 
 If you have the MariaDB client library installed you can access
-containerized database using
+the containerized database using the command
 
 ```shell
 mariadb -h localhost -P 3306 -u mariadb -p
 ```
+or using an appropriate connector library for your language.
 
 Soon we will add a utility to interface with the database, to
 simplify setting up and resetting the schema. Then we will start
-inserting data from the CLZ file into the database.
+inserting data from the CLZ file into the database and add
+interfaces to view and update the data in various ways.
