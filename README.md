@@ -22,3 +22,28 @@ As the project grows we will restructure it. We also plan to try
 out different options for allowing the user to interact with the
 data. Some ideas are a Golang TUI using Bubbletea, which we think
 is nice, or a web API and/or app using some nice current stack.
+
+## Database
+
+We have added a Docker Compose service (defined in `compose.yaml`)
+with a containerized MariaDB database. It is setup with the following
+config:
+
++ root password `p@ssw0rd`
++ main user `mariadb`
++ main user password `mariadb`
++ default database `collection`
+
+It is setup to have persistent storage, by saving its `/var/lib/mysql`
+directory to the `dbdata` subfolder on the host.
+
+If you have the MariaDB client library installed you can access
+containerized database using
+
+```shell
+mariadb -h localhost -P 3306 -u mariadb -p
+```
+
+Soon we will add a utility to interface with the database, to
+simplify setting up and resetting the schema. Then we will start
+inserting data from the CLZ file into the database.
