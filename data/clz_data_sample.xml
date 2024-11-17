@@ -1,0 +1,295 @@
+<?xml version="1.0" encoding="utf-8"?>
+<collectorz>
+  <response>
+    <message>2024-11-14 00:34:48</message>
+    <iserror>0</iserror>
+  </response>
+  <meta>
+    <scope>export</scope>
+    <action>export</action>
+  </meta>
+  <data>
+    <bookinfo>
+      <booklist>
+        <book>
+          <datasetversion>11</datasetversion>
+          <hash>74de249eb0234fd8a0018370a8e06a51</hash>
+          <clzbookid>9102569</clzbookid>
+          <mainsection>
+            <title>Potential theory in the complex plane</title>
+            <myrating>0</myrating>
+            <pagecount>246</pagecount>
+            <plot><![CDATA[Potential theory is the broad area of mathematical analysis encompassing harmonic and subharmonic functions, the Dirichlet problem, harmonic measure, Green's functions, potentials and capacity. This introduction concentrates on the important case of two dimensions, and emphasizes its links with complex analysis.]]></plot>
+            <credits>
+              <credit>
+                <role id="dfAuthor">Author</role>
+                <roleid>dfAuthor</roleid>
+                <person>
+                  <displayname>Thomas Ransford</displayname>
+                  <firstname>Thomas</firstname>
+                  <lastname>Ransford</lastname>
+                  <sortname>Ransford, Thomas</sortname>
+                </person>
+              </credit>
+            </credits>
+          </mainsection>
+          <publisher>
+            <displayname>Cambridge University Press</displayname>
+          </publisher>
+          <genres/>
+          <subjects>
+            <subject>
+              <displayname>Functions (Mathematics)</displayname>
+            </subject>
+            <subject>
+              <displayname>Functions Of Complex Variables</displayname>
+            </subject>
+            <subject>
+              <displayname>Mathematics / Probability &amp; Statistics / General</displayname>
+            </subject>
+            <subject>
+              <displayname>Potential Theory (Mathematics)</displayname>
+            </subject>
+          </subjects>
+          <isbn>9780521466547</isbn>
+          <publicationdate>
+            <year>
+              <displayname>1995</displayname>
+            </year>
+            <date>1995</date>
+            <displaydate>1995</displaydate>
+          </publicationdate>
+          <coverfrontdefault>https://clzbooks.r.sizr.io/core/covers/lg/c6/c6_u5545494_0_RansfordTJ_Potentialtheoryinthecomplexpla.jpg</coverfrontdefault>
+          <coverfrontfilesizedefault>-1</coverfrontfilesizedefault>
+          <quantity>1</quantity>
+          <index>1</index>
+          <location>
+            <displayname>Current Home</displayname>
+          </location>
+          <collectionstatus listid="3">In Collection</collectionstatus>
+          <purchasedate/>
+          <readit boolvalue="0">No</readit>
+          <readingdate/>
+          <tags/>
+          <dewey>515.9</dewey>
+          <lccn>QA404.7 .R36 1995</lccn>
+          <height>240</height>
+          <width>151</width>
+          <language>
+            <displayname>English</displayname>
+          </language>
+          <loans/>
+          <addeddate>
+            <timestamp>1555326631</timestamp>
+          </addeddate>
+          <modifieddate>
+            <timestamp>1725147638</timestamp>
+          </modifieddate>
+          <collection>
+            <displayname>My book collection</displayname>
+            <sortid>0</sortid>
+            <hash>CLZ-0000</hash>
+          </collection>
+          <audiobookabridged boolvalue="0">No</audiobookabridged>
+          <audiobooklength>0</audiobooklength>
+          <extras/>
+          <origpublicationdate/>
+          <printing>0</printing>
+          <firstedition boolvalue="0">No</firstedition>
+          <printedby/>
+          <papertype/>
+          <links/>
+          <signees/>
+          <dustjacket boolvalue="0">No</dustjacket>
+        </book>
+        <book>
+          <datasetversion>11</datasetversion>
+          <hash>feb09a5c9ebf47d19a1b2108d1e6747e</hash>
+          <clzbookid>656823</clzbookid>
+          <mainsection>
+            <title>Linear Algebra Done Right</title>
+            <myrating>0</myrating>
+            <pagecount>272</pagecount>
+            <plot><![CDATA[This text for a second course in linear algebra is aimed at math majors and graduate students. The novel approach taken here banishes determinants to the end of the book and focuses on the central goal of linear algebra: understanding the structure of linear operators on vector spaces. The author has taken unusual care to motivate concepts and to simplify proofs. For example, the book presents--without having defined determinants--a clean proof that every linear operator on a finite-dimensional complex vector space (or an odd-dimensional real vector space) has an eigenvalue. A variety of interesting exercises in each chapter helps students understand and manipulate the objects of linear algebra. No prerequisites are assumed other than the usual demand for suitable mathematical maturity. Thus, the text starts by discussing vector spaces, linear independence, span, basis, and dimension. Students are introduced to inner-product spaces in the first half of the book and shortly thereafter to the finite-dimensional spectral theorem. This second edition includes a new section on orthogonal projections and minimization problems. The sections on self-adjoint operators, normal operators, and the spectral theorem have been rewritten. New examples and new exercises have been added, several proofs have been simplified, and hundreds of minor improvements have been made throughout the text.]]></plot>
+            <credits>
+              <credit>
+                <role id="dfAuthor">Author</role>
+                <roleid>dfAuthor</roleid>
+                <person>
+                  <displayname>Sheldon Axler</displayname>
+                  <firstname>Sheldon</firstname>
+                  <lastname>Axler</lastname>
+                  <sortname>Axler, Sheldon</sortname>
+                </person>
+              </credit>
+            </credits>
+          </mainsection>
+          <publisher>
+            <displayname>Springer</displayname>
+          </publisher>
+          <format>
+            <displayname>Paperback</displayname>
+          </format>
+          <genres/>
+          <subjects>
+            <subject>
+              <displayname>Algebras, Linear</displayname>
+            </subject>
+            <subject>
+              <displayname>Mathematics / Algebra / Linear</displayname>
+            </subject>
+          </subjects>
+          <isbn>9780387982588</isbn>
+          <publicationdate>
+            <year>
+              <displayname>2004</displayname>
+            </year>
+            <month>02</month>
+            <day>26</day>
+            <date>2004/02/26</date>
+            <displaydate>Feb 26, 2004</displaydate>
+          </publicationdate>
+          <coverfrontdefault>https://clzbooks.r.sizr.io/core/covers/lg/44/44_656823_0_SheldonAxlerLinearAlgebraDoneR.jpg</coverfrontdefault>
+          <coverfrontfilesizedefault>-1</coverfrontfilesizedefault>
+          <quantity>1</quantity>
+          <index>2</index>
+          <location>
+            <displayname>Current Home</displayname>
+          </location>
+          <collectionstatus listid="3">In Collection</collectionstatus>
+          <purchasedate/>
+          <readit boolvalue="0">No</readit>
+          <readingdate/>
+          <tags/>
+          <dewey>512.5</dewey>
+          <lccn>QA184 .A96 1997</lccn>
+          <height>234</height>
+          <width>190</width>
+          <language>
+            <displayname>English</displayname>
+          </language>
+          <loans/>
+          <addeddate>
+            <timestamp>1555332456</timestamp>
+          </addeddate>
+          <modifieddate>
+            <timestamp>1725147638</timestamp>
+          </modifieddate>
+          <collection>
+            <displayname>My book collection</displayname>
+            <sortid>0</sortid>
+            <hash>CLZ-0000</hash>
+          </collection>
+          <audiobookabridged boolvalue="0">No</audiobookabridged>
+          <audiobooklength>0</audiobooklength>
+          <extras/>
+          <origpublicationdate/>
+          <printing>0</printing>
+          <firstedition boolvalue="0">No</firstedition>
+          <printedby/>
+          <papertype/>
+          <links/>
+          <signees/>
+          <dustjacket boolvalue="0">No</dustjacket>
+        </book>
+        <book>
+          <datasetversion>11</datasetversion>
+          <hash>84291c07446541f9bc36969c015d6a92</hash>
+          <clzbookid>3833052</clzbookid>
+          <mainsection>
+            <title>Complex Variables</title>
+            <myrating>0</myrating>
+            <pagecount>224</pagecount>
+            <plot><![CDATA[Geared toward advanced undergraduates and graduate students, this substantially revised and updated edition of a popular text offers a concise treatment that provides careful and complete explanations as well as numerous problems and solutions. Topics include elementary theory, general Cauchy theorem and applications, analytic functions, and prime number theorem. 2004 edition.]]></plot>
+            <credits>
+              <credit>
+                <role id="dfAuthor">Author</role>
+                <roleid>dfAuthor</roleid>
+                <person>
+                  <displayname>Robert B. Ash</displayname>
+                  <firstname>Robert B.</firstname>
+                  <lastname>Ash</lastname>
+                  <sortname>Ash, Robert B.</sortname>
+                </person>
+              </credit>
+              <credit>
+                <role id="dfAuthor">Author</role>
+                <roleid>dfAuthor</roleid>
+                <person>
+                  <displayname>W. Phil Novinger</displayname>
+                  <firstname>W.</firstname>
+                  <lastname>Phil Novinger</lastname>
+                  <sortname>Phil Novinger, W.</sortname>
+                </person>
+              </credit>
+            </credits>
+          </mainsection>
+          <publisher>
+            <displayname>Dover Pubn Inc</displayname>
+          </publisher>
+          <format>
+            <displayname>Paperback</displayname>
+          </format>
+          <genres/>
+          <subjects>
+            <subject>
+              <displayname>Functions Of Complex Variables</displayname>
+            </subject>
+          </subjects>
+          <isbn>9780486462509</isbn>
+          <publicationdate>
+            <year>
+              <displayname>2007</displayname>
+            </year>
+            <month>10</month>
+            <day>19</day>
+            <date>2007/10/19</date>
+            <displaydate>Oct 19, 2007</displaydate>
+          </publicationdate>
+          <coverfrontdefault>https://clzbooks.r.sizr.io/core/covers/lg/91/91_3833052_0_RobertBAshWPhilNovinger_ComplexVariables.jpg</coverfrontdefault>
+          <coverfrontfilesizedefault>-1</coverfrontfilesizedefault>
+          <quantity>1</quantity>
+          <index>3</index>
+          <location>
+            <displayname>Current Home</displayname>
+          </location>
+          <collectionstatus listid="3">In Collection</collectionstatus>
+          <purchasedate/>
+          <readit boolvalue="0">No</readit>
+          <readingdate/>
+          <tags/>
+          <dewey>515.9</dewey>
+          <lccn>QA331.7 .A836 2007</lccn>
+          <height>240</height>
+          <width>165</width>
+          <language>
+            <displayname>English</displayname>
+          </language>
+          <loans/>
+          <addeddate>
+            <timestamp>1555332456</timestamp>
+          </addeddate>
+          <modifieddate>
+            <timestamp>1725147638</timestamp>
+          </modifieddate>
+          <collection>
+            <displayname>My book collection</displayname>
+            <sortid>0</sortid>
+            <hash>CLZ-0000</hash>
+          </collection>
+          <audiobookabridged boolvalue="0">No</audiobookabridged>
+          <audiobooklength>0</audiobooklength>
+          <extras/>
+          <origpublicationdate/>
+          <printing>0</printing>
+          <firstedition boolvalue="0">No</firstedition>
+          <printedby/>
+          <papertype/>
+          <links/>
+          <signees/>
+          <dustjacket boolvalue="0">No</dustjacket>
+        </book>
+      </booklist>
+    </bookinfo>
+  </data>
+</collectorz>
