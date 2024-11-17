@@ -1,4 +1,4 @@
-# Rust CLZ Data Reader
+# CLZ Book Data App
 
 I use CLZ books to keep track of my paper books collection.
 This is an app to read the data in the CLZ library export XML
