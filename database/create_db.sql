@@ -1,8 +1,10 @@
 -- Setup our schema for the `collections` database.
 
+-- Needs to be first, unless we disable FKs for delete.
+drop table if exists `author_book`;
+
 drop table if exists `book`;
 drop table if exists `author`;
-drop table if exists `author_book`;
 
 -- Create tables.
 
@@ -44,4 +46,17 @@ create table if not exists `author_book` (
      , primary key (id)
      , unique key author_book (author_id, book_id)
 ) engine=innodb default charset=utf8mb4 collate=utf8mb4_general_ci
+;
+
+-- Create foreign keys.
+-- Note that default for on delete / update is no action.
+
+    alter table `author_book`
+add foreign key `author_book_author_fk` (`author_id`)
+     references `author`(`id`)
+;
+
+    alter table `author_book`
+add foreign key `author_book_book_fk` (`book_id`)
+     references `book`(`id`)
 ;
