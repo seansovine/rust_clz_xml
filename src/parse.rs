@@ -1,3 +1,5 @@
+use crate::data::{Book, MainMessage};
+
 use std::io::BufRead;
 use std::sync::mpsc::Sender;
 use quick_xml::events::Event;
@@ -52,25 +54,8 @@ fn update_state_on_end(state: ParseState, tag_name: &str) -> (ParseState, bool) 
     }
 }
 
-struct Author {
-    first_name: String,
-    middle_name: String,
-    last_name: String,
-}
-
-pub struct Book {
-    pub title: String,
-    authors: Vec<Author>,
-}
-
-impl Book {
-    pub fn new_option() -> Option<Book> {
-        Some(Book{ title: String::default(), authors: Vec::default() })
-    }
-}
-
 /// Read the XML!
-pub fn read_xml<T: BufRead>(mut reader: Reader<T>, sender: Sender<Book>) -> std::io::Result<()> {
+pub fn read_xml<T: BufRead>(mut reader: Reader<T>, sender: Sender<MainMessage>) -> std::io::Result<()> {
     let mut buffer = Vec::new();
     let mut count: u32 = 0;
 
@@ -116,7 +101,8 @@ pub fn read_xml<T: BufRead>(mut reader: Reader<T>, sender: Sender<Book>) -> std:
                         (parse_state, ready_to_send) = update_state_on_end(parse_state, name);
 
                         if ready_to_send {
-                            sender.send(current_book.take().unwrap()).unwrap()
+                            let message = MainMessage::Data(current_book.take().unwrap());
+                            sender.send(message).unwrap()
                         }
                     }
 
@@ -131,6 +117,8 @@ pub fn read_xml<T: BufRead>(mut reader: Reader<T>, sender: Sender<Book>) -> std:
     }
 
     println!("Found {} 'book' start tags.", count);
+
+    sender.send(MainMessage::WorkComplete).unwrap();
 
     return Ok(());
 }
