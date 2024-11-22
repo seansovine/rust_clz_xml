@@ -14,7 +14,7 @@ the design of the Rust program that reads the CLZ data XML file.
 
 Notes on our database Docker Compose setup can be found [here](database/README.md).
 
-__To start the database:__
+**To start the database:**
 
 In the project root, assuming you have Docker installed, run
 
@@ -24,7 +24,7 @@ docker compose up
 
 The first time you run this it will create an empty `collection` database.
 
-__Setting up / resetting the database:__
+**Setting up / resetting the database:**
 
 The `db-util` folder has a SQL script to dump all data and reset the
 schema, and a little Go program to connect to the database and run it.

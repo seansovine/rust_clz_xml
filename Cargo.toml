@@ -5,4 +5,5 @@ edition = "2021"
 
 [dependencies]
 quick-xml = "0.37.0"
-sqlx = "0.8.2"
+sqlx = { version = "0.8.2", features = ["mysql", "runtime-tokio"] }
+tokio = { version = "1.41.1", features = ["rt", "rt-multi-thread"] }
