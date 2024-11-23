@@ -3,20 +3,8 @@
 
 import { Client } from "https://deno.land/x/mysql/mod.ts";
 
-const client = await new Client().connect({
-  hostname: "mariadb",
-  username: "mariadb",
-  db: "collection",
-  password: "p@ssw0rd",
-});
-
-const { rows: books } = await client.execute(`select * from book`);
-
-function get_book_item(i) {
+function get_book_item(book) {
 	let text: string = "<li>"
-	let book = books[i]
-
-	console.log(book)
 
 	text += "book id: " + book.id + "\n"
 
@@ -30,13 +18,30 @@ function get_book_item(i) {
 	return text
 }
 
-function handler(_req: Request): Response {
+async function run_query() {
+	const client = await new Client().connect({
+		hostname: "mariadb",
+		username: "mariadb",
+		db: "collection",
+		password: "p@ssw0rd",
+	  });
+
+	  console.log("Querying collection database.")
+
+	  const { rows: books } = await client.execute(`select * from book`);
+
+	  return books
+}
+
+async function handler(_req: Request): Promise<Response> {
+	let books = await run_query()
+
 	let response: string = "<html>\n"
 	response += "<h1>Books Database</h1>\n"
 	response += "<ol>\n"
 
 	for (const i in books) {
-		response += get_book_item(i)
+		response += get_book_item(books[i])
 	}
 
 	response += "</ol>\n"
