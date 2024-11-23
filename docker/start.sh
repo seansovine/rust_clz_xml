@@ -4,4 +4,5 @@
 deno cache app/main.ts
 
 # Run our server app with network access.
-deno run --allow-net app/main.ts
+# Watch will detect changes in the app source and reload.
+deno run --allow-net --watch app/main.ts

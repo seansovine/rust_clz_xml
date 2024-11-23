@@ -12,16 +12,34 @@ const client = await new Client().connect({
 
 const { rows: books } = await client.execute(`select * from book`);
 
+function get_book_item(i) {
+	let text: string = "<li>"
+	let book = books[i]
+
+	console.log(book)
+
+	text += "book id: " + book.id + "\n"
+
+	text += "<ul>\n"
+	text += "  <li>title: " + book.title + "</li>\n"
+	text += "  <li>isbn: " + book.isbn + "</li>\n"
+	text += "</ul>\n"
+
+	text += "</li>\n"
+
+	return text
+}
+
 function handler(_req: Request): Response {
 	let response: string = "<html>\n"
 	response += "<h1>Books Database</h1>\n"
-	response += "<ul>\n"
+	response += "<ol>\n"
 
 	for (const i in books) {
-		response += "  <li>" + books[i].title + "</li>\n"
+		response += get_book_item(i)
 	}
 
-	response += "</ul>\n"
+	response += "</ol>\n"
 	response += "</html>"
 
 	return new Response(response, {
