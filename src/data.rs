@@ -23,6 +23,7 @@ impl Book {
 pub enum MainMessage {
     Data(Book),
     WorkComplete,
+    Generic(String),
 }
 
 pub enum DatabaseMessage {

@@ -62,6 +62,10 @@ fn main() -> std::io::Result<()> {
             }
 
             MainMessage::WorkComplete => break,
+
+            MainMessage::Generic(message) => {
+                println!("{}", message);
+            }
         }
     }
 

@@ -8,7 +8,7 @@ use crate::data::{Book, DatabaseMessage, MainMessage};
 async fn add_book(book: & Book, pool: & MySqlPool) {
     // Nullable fields can be bound as Options.
     let isbn: Option<String>;
-    if(book.isbn.is_empty()) {
+    if book.isbn.is_empty() {
         isbn = None;
     } else {
         isbn = Some(book.isbn.clone());

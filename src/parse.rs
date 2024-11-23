@@ -71,10 +71,10 @@ fn handle_text(state: ParseState, text: & BytesText, current_book: &mut Option<B
     }
 
     let text = text.unescape().unwrap().into_owned();
-    output(&format!("Found book with title: '{}'", text));
 
     match state {
         ParseState::TitleTag => {
+            output(&format!("Found book with title: '{}'", text));
             current_book.as_mut().unwrap().title = text;
         }
 
@@ -143,7 +143,7 @@ pub fn read_xml<T: BufRead>(mut reader: Reader<T>, sender: Sender<MainMessage>) 
         buffer.clear();
     }
 
-    println!("Found {} 'book' start tags.", count);
+    sender.send(MainMessage::Generic(format!("Found {} 'book' start tags.", count))).unwrap();
 
     sender.send(MainMessage::WorkComplete).unwrap();
 
