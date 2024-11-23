@@ -8,12 +8,13 @@ pub struct Author {
 
 pub struct Book {
     pub title: String,
+    pub isbn: String,
     authors: Vec<Author>,
 }
 
 impl Book {
     pub fn new_option() -> Option<Book> {
-        Some(Book{ title: String::default(), authors: Vec::default() })
+        Some(Book{ title: String::default(), isbn: String::default(), authors: Vec::default() })
     }
 }
 

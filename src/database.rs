@@ -6,8 +6,17 @@ use tokio::runtime::Runtime;
 use crate::data::{Book, DatabaseMessage, MainMessage};
 
 async fn add_book(book: & Book, pool: & MySqlPool) {
-    let result = sqlx::query("insert into `book` (`title`) values (?)")
-        .bind(book.title.clone()).execute(pool).await;
+    // Nullable fields can be bound as Options.
+    let isbn: Option<String>;
+    if(book.isbn.is_empty()) {
+        isbn = None;
+    } else {
+        isbn = Some(book.isbn.clone());
+    }
+
+    let result =
+        sqlx::query("insert into `book` (`title`, `isbn`) values (?, ?)")
+        .bind(book.title.clone()).bind(isbn).execute(pool).await;
 
     match result {
         Err(e) => {
