@@ -32,6 +32,12 @@ See that folder's [README](database/README.md) for instructions on
 resetting the database and updating the schema and notes on our
 Docker Compose setup.
 
+## Web App
+
+We've added a Deno service to our Docker Compose setup with a very
+basic web server app that generates a simple page from a query to our
+`book` database table. More information is [here](webapp/README.md).
+
 ## Next
 
 We will continue fleshing out the implementation for extracting different

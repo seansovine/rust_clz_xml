@@ -32,3 +32,9 @@ the containerized database using the command
 mariadb -h localhost -P 3306 -u mariadb -p
 ```
 or using an appropriate connector library for your language.
+
+To only start the database service you can use
+
+```shell
+docker compose up mariadb
+```
