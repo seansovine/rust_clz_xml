@@ -10,6 +10,9 @@ make build_run
 
 Any updates to the schema should be made in `create_db.sql`.
 
+There is also a script `empty_db.sql` here that can be run to quickly empty
+the data from the database, if that's more convenient.
+
 ## Notes on our database setup:
 
 We have added a Docker Compose service (defined in `${project_root}/compose.yaml`)

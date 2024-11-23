@@ -13,13 +13,16 @@ file and inserts the data into a database.
 
 ## Database
 
-**To start the database:**
+**To start the database and web app:**
 
 In the project root, assuming you have Docker installed, run
 
 ```shell
 docker compose up
 ```
+
+You can add the `--build` flag to force Docker to rebuild the container images,
+and add `mariadb` to start only the database service.
 
 The first time you run this it will create an empty `collection` database.
 
