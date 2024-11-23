@@ -53,4 +53,8 @@ pub fn database_main(receiver: Receiver<DatabaseMessage>, sender: Sender<MainMes
             }
         }
     }
+
+    // Gracefully shutdown database connections.
+    let pool_close_task = pool.close();
+    runtime.block_on(pool_close_task);
 }
