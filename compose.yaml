@@ -1,4 +1,5 @@
 services:
+
   mariadb:
     container_name: mariadb
     restart: always
@@ -12,3 +13,26 @@ services:
       - "3306:3306"
     volumes:
       - ./dbdata:/var/lib/mysql
+
+    # Allows ensuring that database is ready before starting server.
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      start_period: 10s
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  deno:
+    container_name: deno
+    restart: always
+    build:
+      context: ./docker
+      dockerfile: deno
+    ports:
+      - "8080:8000"
+    volumes:
+      - ./webapp:/app
+    depends_on:
+      mariadb:
+        condition: service_healthy
+        restart: true
