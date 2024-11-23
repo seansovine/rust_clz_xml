@@ -39,7 +39,8 @@ identical if they have ISBNs recorded and those are both the
 same. We will consider authors to be the same if all three names
 -- first, middle, and last -- are the same. If any trouble arises
 from this we will add an additional disambiguation field to the
-`authors` table.
+`author` table. In general we'll keep adding more data fields
+as needed.
 
 We will create some kind of interface (maybe the Golang TUI) for
 merging / separating authors and manually updating data and
