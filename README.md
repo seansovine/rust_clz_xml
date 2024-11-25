@@ -11,7 +11,7 @@ See the `src` folder [README](src/README.md) for some notes on
 the evolving design of the Rust program that reads the CLZ data XML
 file and inserts the data into a database.
 
-I've drawn help an inspiration from various sources while working
+I've drawn help and inspiration from various sources while working
 on this. I'll try to cite some of those I drew the most from [here](Credits.md).
 
 ## Database
@@ -31,7 +31,7 @@ The first time you run this it will create an empty `collection` database.
 
 **Setting up / resetting the database:**
 
-The `database` folder has a SQL script to dump all data and reset the
+The `dbutil` folder has a SQL script to dump all data and reset the
 schema, and a little Go program to connect to the database and run it.
 
 See that folder's [README](dbutil/README.md) for instructions on
