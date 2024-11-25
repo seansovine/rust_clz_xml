@@ -1,15 +1,16 @@
-package main
+package lib
 
 import (
 	"database/sql"
 	"fmt"
 	"log"
 	"os"
+	"path/filepath"
 
 	_ "github.com/go-sql-driver/mysql"
 )
 
-func main() {
+func ResetDb() {
 	fmt.Println("Connecting to database.")
 
 	// Can call log.Fatal.
@@ -68,8 +69,24 @@ func createTables(db *sql.DB) error {
 	return nil
 }
 
+func scriptsDir() (string, error) {
+	exe, err := os.Executable()
+	if err != nil {
+		return "", err
+	}
+
+	exePath := filepath.Dir(filepath.Dir(exe))
+
+	return exePath + "/scripts", nil
+}
+
 func readSqlFile() (string, error) {
-	filename := "create_db.sql"
+	scriptPath, err := scriptsDir()
+	if err != nil {
+		return "", nil
+	}
+
+	filename := scriptPath + "/create_db.sql"
 	fileBytes, err := os.ReadFile(filename)
 
 	if err != nil {
