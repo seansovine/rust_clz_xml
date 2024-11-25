@@ -1,0 +1,26 @@
+edition = "2023";
+
+option features.field_presence = IMPLICIT;
+option go_package = "db-util/dbutilserver";
+
+import "google/protobuf/empty.proto";
+
+package dbutilserver;
+
+// A service to run higher-level commands
+// on the database by gRPC.
+service DbUtil {
+	//
+	rpc ResetData(google.protobuf.Empty) returns (CommandResult) {}
+
+	//
+	rpc ResetSchema(google.protobuf.Empty) returns (CommandResult) {}
+}
+
+message CommandResult {
+	// Was the command successful.
+	bool success = 1;
+
+	// An error message if the command failed.
+	string error = 2;
+}
