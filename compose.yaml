@@ -26,7 +26,7 @@ services:
     container_name: deno
     restart: always
     build:
-      context: ./docker
+      context: ./deno
       dockerfile: deno.dockerfile
     ports:
       - "8080:8000"
@@ -36,3 +36,14 @@ services:
       mariadb:
         condition: service_healthy
         restart: true
+
+  dbutil:
+    container_name: dbutil
+    restart: always
+    build:
+      context: dbutil
+      dockerfile: dbutil.dockerfile
+    ports:
+      - "50051:50051"
+    volumes:
+      - ./scripts:/scripts

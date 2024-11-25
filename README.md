@@ -11,6 +11,9 @@ See the `src` folder [README](src/README.md) for some notes on
 the evolving design of the Rust program that reads the CLZ data XML
 file and inserts the data into a database.
 
+I've drawn help an inspiration from various sources while working
+on this. I'll try to cite some of those I drew the most from [here](Credits.md).
+
 ## Database
 
 **To start the database and web app:**
@@ -31,7 +34,7 @@ The first time you run this it will create an empty `collection` database.
 The `database` folder has a SQL script to dump all data and reset the
 schema, and a little Go program to connect to the database and run it.
 
-See that folder's [README](database/README.md) for instructions on
+See that folder's [README](dbutil/README.md) for instructions on
 resetting the database and updating the schema and notes on our
 Docker Compose setup.
 
@@ -40,6 +43,16 @@ Docker Compose setup.
 We've added a Deno service to our Docker Compose setup with a very
 basic web server app that generates a simple page from a query to our
 `book` database table. More information is [here](webapp/README.md).
+
+## gRPC Microservice Architecture
+
+We're experimenting with this. The current plan is to implement the database
+utility first as a gRPC microservice that can be called remotely with various
+commands from our future TUI. We can also make our Rust XML import program
+run as a microservice. More details are [here](dbutil/README.md).
+
+The point of this is mainly to experiment with the technology. But as we expand
+the system, we may find more interesting things to do with it.
 
 ## Next
 

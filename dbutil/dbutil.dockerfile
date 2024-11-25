@@ -2,21 +2,21 @@
 
 FROM golang:alpine
 
-# Install git and ca-certificates (needed to be able to call HTTPS)
+# Install git and ca-certificates for HTTPS
 RUN apk --update add ca-certificates git
 
-# Move to working directory /app
 WORKDIR /app
 
-# Copy the code into the container
-COPY ./src .
+COPY ./dbutilserver ./dbutilserver
+COPY ./src ./src
+COPY go.mod .
+COPY go.sum .
 
-# Download dependencies using go mod
+# Download module dependencies
 RUN go mod download
 
-# Build the application's binary
-RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -ldflags '-extldflags "-static"' -o main .
-# TODO: Do we need all these flags if CGO_ENABLED=0?
+# Build with static linking (not sure if necessary).
+RUN CGO_ENABLED=0 GOOS=linux go build -modfile ./go.mod -ldflags '-extldflags "-static"' -o main ./src/server/server.go
 
-# Command to run the application when starting the container
+# Run server on container run.
 CMD ["/app/main"]

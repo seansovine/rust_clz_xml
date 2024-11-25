@@ -41,3 +41,31 @@ To only start the database service you can use
 ```shell
 docker compose up mariadb
 ```
+
+## gRPC Server
+
+We've added the start of a gRPC server to run commands on our database
+in Go. It is built and runs inside of a Docker container. We've added it
+as a service `dbutil` in our Docker Compose setup, but you can run it
+manually with
+
+```shell
+make build_docker
+make run_docker
+```
+
+Or you can debug by running a shell in the container with
+
+```shell
+make docker_shell
+```
+
+Or from the project root directory
+
+```shell
+docker compose up dbutil
+```
+
+We will soon flesh out the methods of the service and implement a client
+application. Eventually we will have our future TUI use the client methods
+to remotely execute commands on the database utility service.

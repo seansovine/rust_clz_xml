@@ -21,6 +21,8 @@ func newServer() *dbUtilServer {
 }
 
 func main() {
+	fmt.Println("Starting dbutil gRPC server...")
+
 	lis, err := net.Listen("tcp", fmt.Sprintf("localhost:%d", port))
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
