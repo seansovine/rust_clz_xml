@@ -3,32 +3,66 @@ package lib
 import (
 	"database/sql"
 	"fmt"
-	"log"
 	"os"
 	"path/filepath"
 
 	_ "github.com/go-sql-driver/mysql"
 )
 
-func ResetDb() {
-	fmt.Println("Connecting to database.")
+// Database connection params.
+var (
+	username = "mariadb"
+	password = "p@ssw0rd"
+	database = "collection"
+)
 
-	// Can call log.Fatal.
-	db := connectDB()
-	defer db.Close()
+func ResetDb() error {
+	_, err := RunSql("create_db.sql")
 
-	err := createTables(db)
-
-	if err != nil {
-		log.Fatal(err)
-	}
+	return err
 }
 
-func connectDB() *sql.DB {
-	username := "mariadb"
-	password := "p@ssw0rd"
-	database := "collection"
+func EmptyDb() error {
+	_, err := RunSql("empty_db.sql")
 
+	return err
+}
+
+func ImportRecent() error {
+	_, err := RunSql("recent_dump.sql")
+
+	return err
+}
+
+func RunSql(sqlFile string) (*sql.Result, error) {
+	/// Generic function for running a script
+	/// in the dbutil/scripts directory.
+
+	// Can call log.Fatal.
+	db, err := connectDB()
+
+	if err != nil {
+		return nil, err
+	}
+
+	defer db.Close()
+
+	sql, err := readSqlFile(sqlFile)
+
+	if err != nil {
+		return nil, err
+	}
+
+	result, err := db.Exec(sql)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &result, err
+}
+
+func connectDB() (*sql.DB, error) {
 	// multiStatements lets us execute multiple statements in one query string.
 	// We use this since we will execute the entire setup sql script.
 	connectionString := fmt.Sprintf("%s:%s@tcp(localhost:3306)/%s?multiStatements=true", username, password, database)
@@ -36,37 +70,10 @@ func connectDB() *sql.DB {
 	db, err := sql.Open("mysql", connectionString)
 
 	if err != nil {
-		fmt.Println("Database connection failed.")
-
-		log.Fatal(err)
+		return nil, err
 	}
 
-	return db
-}
-
-func createTables(db *sql.DB) error {
-	// testSql := `create table if not exists book (id int not null auto_increment, primary key (id));
-	//             create table if not exists author (id int not null, primary key (id));`
-
-	fileSql, err := readSqlFile()
-
-	if err != nil {
-		fmt.Println("Create table query failed.")
-
-		return err
-	}
-
-	_, err = db.Exec(fileSql)
-
-	if err != nil {
-		fmt.Println("Create table query failed.")
-
-		return err
-	}
-
-	fmt.Println("Executed table setup query.")
-
-	return nil
+	return db, nil
 }
 
 func scriptsDir() (string, error) {
@@ -80,13 +87,13 @@ func scriptsDir() (string, error) {
 	return exePath + "/scripts", nil
 }
 
-func readSqlFile() (string, error) {
+func readSqlFile(scriptFile string) (string, error) {
 	scriptPath, err := scriptsDir()
 	if err != nil {
 		return "", nil
 	}
 
-	filename := scriptPath + "/create_db.sql"
+	filename := scriptPath + "/" + scriptFile
 	fileBytes, err := os.ReadFile(filename)
 
 	if err != nil {

@@ -1,10 +1,10 @@
-build-console:
+build_console:
 	go build -o bin/db-util src/console.go
 
 run:
 	@./bin/db-util
 
-build_run: build-console run
+build_run: build_console run
 
 proto:
 	protoc --go_out=. --go_opt=paths=source_relative \
