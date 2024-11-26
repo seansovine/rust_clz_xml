@@ -19,29 +19,28 @@ We're using `tokio`'s runtime to just block on the async database
 methods, but eventually we'll try to take more advantage of the
 async nature of `sqlx`.
 
-We also plan to try
-out different options for allowing the user to interact with the
-data. Some ideas are a Golang TUI using Bubbletea, which we think
-is nice, or a web API and/or app using some nice current stack,
-maybe based on Deno.
+We also plan to keep trying
+out different options for interacting with the
+data. One favorite idea is a Golang TUI using the Bubbletea framework,
+which we think is nice. We've added a very basic web app using
+using Deno to construct HTML from a query to the database. We'd like
+to explore some of the nice frameworks for building web apps with
+Deno.
 
-## Error handling
+## Error Handling in Parser
 
 This may be next priority. We will send errors back to the main
-thread, where they can be handled and reported.
+thread, where they can be handled and reported. Right it now panics
+when many errors occur -- not good!
 
-## Data management
+## Data Management
 
 One major issue is disambiguating the data. It's conceivable to
 have two books with the same title or two authors with the same
-name. I think to start with we will only consider books to be
-identical if they have ISBNs recorded and those are both the
-same. We will consider authors to be the same if all three names
--- first, middle, and last -- are the same. If any trouble arises
-from this we will add an additional disambiguation field to the
-`author` table. In general we'll keep adding more data fields
-as needed.
+name. And even more two records of the same book can have
+complementary and/or conflicting data.
 
-We will create some kind of interface (maybe the Golang TUI) for
-merging / separating authors and manually updating data and
-associations between data.
+At some point we will add a utility to help automate disambiguating
+and merging corresponding data. There are various ways we could do
+this, based on matches in various fields. But this is also the main
+reason for the relative lack of unique keys in the schema.

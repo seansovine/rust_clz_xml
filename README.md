@@ -11,9 +11,6 @@ See the `src` folder [README](src/README.md) for some notes on
 the evolving design of the Rust program that reads the CLZ data XML
 file and inserts the data into a database.
 
-I've drawn help and inspiration from various sources while working
-on this. I'll try to cite some of those I drew the most from [here](Credits.md).
-
 ## Database
 
 **To start the database and web app:**
@@ -38,11 +35,12 @@ See that folder's [README](dbutil/README.md) for instructions on
 resetting the database and updating the schema and notes on our
 Docker Compose setup.
 
-## Web App
+## Deno Web App
 
-We've added a Deno service to our Docker Compose setup with a very
-basic web server app that generates a simple page from a query to our
-`book` database table. More information is [here](webapp/README.md).
+Our Docker Compose application has a Deno service that generates and serves
+a simple HTML page from a query to the database. We will explore more ideas for
+the front and back ends of this app. A next step might be to use
+Deno's built-in JSX support for generating the page.
 
 ## gRPC Microservice Architecture
 
@@ -52,13 +50,21 @@ commands from our future TUI. We can also make our Rust XML import program
 run as a microservice. More details are [here](dbutil/README.md).
 
 The point of this is mainly to experiment with the technology. But as we expand
-the system, we may find more interesting things to do with it.
+the system, we may find more interesting things to do with it. One idea is to
+to have the Rust utility send data to the TUI so the user can update the database
+in an online mode, to help avoid adding duplicate data and with merging data from
+overlapping records.
 
 ## Next
 
 We will continue fleshing out the implementation for extracting different
-book data from the XML file and inserting that into the database. We will
-try out some apps and APIs to view and update the data in various ways.
-Some ideas are a web app, maybe with a Deno server, and a Golang TUI
-using Bubbletea, which we think is cool, for managing the data.
-More details are in the `src` [README](src/README.md).
+book data from the XML file and inserting that into the database. We will also keep
+working on different ways to view and modify the data.
+On idea we're pretty sure about is a Golang TUI using the
+[Bubbletea](https://github.com/charmbracelet/bubbletea) framework.
+More details and ideas are in the `src` [README](src/README.md).
+
+## Sources
+
+I've gotten help and inspiration from various sources while working
+on this. I'll try to cite some of those I drew the most from [here](Credits.md).

@@ -44,7 +44,7 @@ docker compose up mariadb
 
 ## gRPC Server
 
-We've added the start of a gRPC server to run commands on our database
+We've implemented a simple RPC server to run commands on our database
 in Go. It is built and runs inside of a Docker container. We've added it
 as a service `dbutil` in our Docker Compose setup, but you can run it
 manually with
@@ -60,12 +60,23 @@ Or you can debug by running a shell in the container with
 make docker_shell
 ```
 
-Or from the project root directory
+Or from the project root directory you can start the Compose service with
 
 ```shell
 docker compose up dbutil
 ```
 
-We will soon flesh out the methods of the service and implement a client
-application. Eventually we will have our future TUI use the client methods
+If you update the gRPC service or protobuf definitions in the `.proto` file,
+you need to run
+
+```shell
+make proto
+```
+
+to regenerate the Go files.
+
+## Next
+
+We'll now implement a basic client to test out the server.
+Eventually we will have our future TUI use the client methods
 to remotely execute commands on the database utility service.
