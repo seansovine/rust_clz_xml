@@ -9,7 +9,7 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/protobuf/types/known/emptypb"
 
-	dbu "db-util/lib"
+	dbu "db-util/src/lib"
 
 	pb "db-util/dbutilserver"
 )
