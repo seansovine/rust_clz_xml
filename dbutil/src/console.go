@@ -7,7 +7,7 @@ import (
 	dbu "db-util/src/lib"
 )
 
-var usage string = "Expects one argument: reset|empty"
+var usage string = "Expects one argument: reset|empty|import"
 
 func main() {
 	args := os.Args

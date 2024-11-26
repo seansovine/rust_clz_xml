@@ -1,17 +1,23 @@
 # Database Utility
 
 This folder has a sql script `create_db.sql` to setup or reset our database,
-and a simple Go program to connect to our database and execute it. You can
-run this simply from this folder with
+and a simple Go console utility to connect to our database and execute it. It also has
+code for a gRPC service for querying and upating the database (see more below).
+
+You can run the console utility simply from this folder with
 
 ```shell
-make build_run
+make build_console
+./bin/db-util <reset|empty|import>
 ```
 
-Any updates to the schema should be made in `create_db.sql`.
+The `import` option will try to run the `scripts/recent_dump.sql` script in
+the database. I use this to import a dump with the recent state of the data.
 
+Any updates to the schema should be made in `create_db.sql`.
 There is also a script `empty_db.sql` here that can be run to quickly empty
-the data from the database, if that's more convenient.
+the data from the database, if that's more convenient. The console utility uses
+this for `empty`.
 
 ## Notes on our database setup:
 
@@ -77,6 +83,6 @@ to regenerate the Go files.
 
 ## Next
 
-We'll now implement a basic client to test out the server.
+We'll now implement a basic client to test out the gRPC server.
 Eventually we will have our future TUI use the client methods
 to remotely execute commands on the database utility service.
