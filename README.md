@@ -44,16 +44,18 @@ Deno's built-in JSX support for generating the page.
 
 ## gRPC Microservice Architecture
 
-We're experimenting with this. The current plan is to implement the database
-utility first as a gRPC microservice that can be called remotely with various
-commands from our future TUI. We can also make our Rust XML import program
-run as a microservice. More details are [here](dbutil/README.md).
+We've currently implemented the database
+utility as a gRPC microservice that can be called remotely with various
+commands from our future TUI. We may also make our Rust XML import program
+run as a gRPC service, so it can be run interactively through the TUI.
+Then the user can provide input to help avoid adding duplicate data
+and for merging data from overlapping records.
 
-The point of this is mainly to experiment with the technology. But as we expand
-the system, we may find more interesting things to do with it. One idea is to
-to have the Rust utility send data to the TUI so the user can update the database
-in an online mode, to help avoid adding duplicate data and with merging data from
-overlapping records.
+The first point of this is to experiment with the technology. But as we expand
+the system, we may find more interesting things to do with it. For example
+we could run the database service and web app on a Raspberry Pi server so
+it's always available.
+More details are [here](dbutil/README.md).
 
 ## Next
 

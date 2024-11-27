@@ -24,3 +24,9 @@ docker_shell:
 	docker run --name dbutil-grpc-server -dit docker.io/library/dbutil-grpc-server /bin/sh
 	docker exec -it dbutil-grpc-server sh \
 		&& docker stop dbutil-grpc-server
+
+build_client:
+	go build -o ./bin/client src/client/client.go
+
+build_server:
+	go build -o ./bin/server src/server/server.go

@@ -81,8 +81,15 @@ make proto
 
 to regenerate the Go files.
 
+We've implemented a basic client to test out the gRPC server. You can build
+the client with
+
+```shell
+make build_client
+```
+
 ## Next
 
-We'll now implement a basic client to test out the gRPC server.
-Eventually we will have our future TUI use the client methods
+Eventually we will have our future TUI use the gRPC client methods
 to remotely execute commands on the database utility service.
+And we will probably also use the gRPC idea for other services.

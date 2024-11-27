@@ -16,7 +16,7 @@ services:
 
     # Allows ensuring that database is ready before starting server.
     healthcheck:
-      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      test: [ "CMD", "healthcheck.sh", "--connect", "--innodb_initialized" ]
       start_period: 10s
       interval: 10s
       timeout: 5s
@@ -32,6 +32,7 @@ services:
       - "8080:8000"
     volumes:
       - ./webapp:/app
+
     depends_on:
       mariadb:
         condition: service_healthy
@@ -44,6 +45,14 @@ services:
       context: dbutil
       dockerfile: dbutil.dockerfile
     ports:
-      - "50051:50051"
+      - target: 50051
+        published: 50051
+        protocol: tcp
+        mode: host
     volumes:
-      - ./scripts:/scripts
+      - ./dbutil/scripts:/scripts
+
+    depends_on:
+      mariadb:
+        condition: service_healthy
+        restart: true

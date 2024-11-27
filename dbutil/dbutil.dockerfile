@@ -3,7 +3,7 @@
 FROM golang:alpine
 
 # Install git and ca-certificates for HTTPS
-RUN apk --update add ca-certificates git
+# RUN apk --update add ca-certificates git
 
 WORKDIR /app
 

@@ -16,36 +16,46 @@ var (
 	database = "collection"
 )
 
-func ResetDb() error {
-	_, err := RunSql("create_db.sql")
-
-	return err
+type DbConnection struct {
+	db *sql.DB
 }
 
-func EmptyDb() error {
-	_, err := RunSql("empty_db.sql")
-
-	return err
-}
-
-func ImportRecent() error {
-	_, err := RunSql("recent_dump.sql")
-
-	return err
-}
-
-func RunSql(sqlFile string) (*sql.Result, error) {
-	/// Generic function for running a script
-	/// in the dbutil/scripts directory.
-
+func NewDb(host string) (*DbConnection, error) {
 	// Can call log.Fatal.
-	db, err := connectDB()
+	db, err := connectDB(host)
 
 	if err != nil {
 		return nil, err
 	}
 
-	defer db.Close()
+	return &DbConnection{db: db}, nil
+}
+
+func (dbc *DbConnection) Close() {
+	dbc.db.Close()
+}
+
+func (dbc *DbConnection) ResetDb() error {
+	_, err := RunSql(dbc.db, "create_db.sql")
+
+	return err
+}
+
+func (dbc *DbConnection) EmptyDb() error {
+	_, err := RunSql(dbc.db, "empty_db.sql")
+
+	return err
+}
+
+func (dbc *DbConnection) ImportRecent() error {
+	_, err := RunSql(dbc.db, "recent_dump.sql")
+
+	return err
+}
+
+func RunSql(db *sql.DB, sqlFile string) (*sql.Result, error) {
+	/// Generic function for running a script
+	/// in the dbutil/scripts directory.
 
 	sql, err := readSqlFile(sqlFile)
 
@@ -62,10 +72,10 @@ func RunSql(sqlFile string) (*sql.Result, error) {
 	return &result, err
 }
 
-func connectDB() (*sql.DB, error) {
+func connectDB(host string) (*sql.DB, error) {
 	// multiStatements lets us execute multiple statements in one query string.
 	// We use this since we will execute the entire setup sql script.
-	connectionString := fmt.Sprintf("%s:%s@tcp(localhost:3306)/%s?multiStatements=true", username, password, database)
+	connectionString := fmt.Sprintf("%s:%s@tcp(%s:3306)/%s?multiStatements=true", username, password, host, database)
 
 	db, err := sql.Open("mysql", connectionString)
 

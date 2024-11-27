@@ -18,15 +18,21 @@ func main() {
 
 	var err error
 
+	dbc, err := dbu.NewDb("localhost")
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	switch args[1] {
 	case "reset":
-		err = dbu.ResetDb()
+		err = dbc.ResetDb()
 
 	case "empty":
-		err = dbu.EmptyDb()
+		err = dbc.EmptyDb()
 
 	case "import":
-		err = dbu.ImportRecent()
+		err = dbc.ImportRecent()
 
 	default:
 		log.Fatal(usage)
