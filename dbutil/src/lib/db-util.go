@@ -10,18 +10,20 @@ import (
 )
 
 // Database connection params.
+
 var (
 	username = "mariadb"
 	password = "p@ssw0rd"
 	database = "collection"
 )
 
+// Database connection type.
+
 type DbConnection struct {
 	db *sql.DB
 }
 
 func NewDb(host string) (*DbConnection, error) {
-	// Can call log.Fatal.
 	db, err := connectDB(host)
 
 	if err != nil {
@@ -36,24 +38,40 @@ func (dbc *DbConnection) Close() {
 }
 
 func (dbc *DbConnection) ResetDb() error {
-	_, err := RunSql(dbc.db, "create_db.sql")
+	_, err := runSql(dbc.db, "create_db.sql")
 
 	return err
 }
 
 func (dbc *DbConnection) EmptyDb() error {
-	_, err := RunSql(dbc.db, "empty_db.sql")
+	_, err := runSql(dbc.db, "empty_db.sql")
 
 	return err
 }
 
 func (dbc *DbConnection) ImportRecent() error {
-	_, err := RunSql(dbc.db, "recent_dump.sql")
+	_, err := runSql(dbc.db, "recent_dump.sql")
 
 	return err
 }
 
-func RunSql(db *sql.DB, sqlFile string) (*sql.Result, error) {
+func connectDB(host string) (*sql.DB, error) {
+	// multiStatements lets us execute multiple statements in one query string.
+	// We use this since we will execute the entire setup sql script.
+	connectionString := fmt.Sprintf("%s:%s@tcp(%s:3306)/%s?multiStatements=true", username, password, host, database)
+
+	db, err := sql.Open("mysql", connectionString)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return db, nil
+}
+
+// Helpers for running our SQL scripts.
+
+func runSql(db *sql.DB, sqlFile string) (*sql.Result, error) {
 	/// Generic function for running a script
 	/// in the dbutil/scripts directory.
 
@@ -70,20 +88,6 @@ func RunSql(db *sql.DB, sqlFile string) (*sql.Result, error) {
 	}
 
 	return &result, err
-}
-
-func connectDB(host string) (*sql.DB, error) {
-	// multiStatements lets us execute multiple statements in one query string.
-	// We use this since we will execute the entire setup sql script.
-	connectionString := fmt.Sprintf("%s:%s@tcp(%s:3306)/%s?multiStatements=true", username, password, host, database)
-
-	db, err := sql.Open("mysql", connectionString)
-
-	if err != nil {
-		return nil, err
-	}
-
-	return db, nil
 }
 
 func scriptsDir() (string, error) {
