@@ -2,15 +2,9 @@ mod parse;
 mod database;
 mod data;
 
-/// Start of an app to read the CLZ books XML file.
-///
-/// The use of quick-xml was inspired by
-///     https://capnfabs.net/posts/parsing-huge-xml-quickxml-rust-serde/
-/// but mostly based on the simple example from the docs,
-///     https://docs.rs/quick-xml/latest/quick_xml/reader/struct.Reader.html
-///
+/// An app to read the CLZ books XML file.
 /// Loads book data extracted from the XML file into a database.
-/// See README's for further discussion.
+/// See README files for further discussion.
 
 use crate::data::{DatabaseMessage, MainMessage};
 

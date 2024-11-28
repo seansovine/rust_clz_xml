@@ -9,7 +9,8 @@ development tools.
 
 See the `src` folder [README](src/README.md) for some notes on
 the evolving design of the Rust program that reads the CLZ data XML
-file and inserts the data into a database.
+file and inserts the data into a database. Currently we extract
+book and author data.
 
 ## Database
 
@@ -59,8 +60,8 @@ More details are [here](dbutil/README.md).
 
 ## Next
 
-We will continue fleshing out the implementation for extracting different
-book data from the XML file and inserting that into the database. We will also keep
+We will continue adding more fields to the book data we extract from
+the XML file and insert into the database. We will also keep
 working on different ways to view and modify the data.
 On idea we're pretty sure about is a Golang TUI using the
 [Bubbletea](https://github.com/charmbracelet/bubbletea) framework.

@@ -1,3 +1,6 @@
+/// See docs on the quick-xml reader:
+///     https://docs.rs/quick-xml/latest/quick_xml/reader/struct.Reader.html
+
 use crate::data::{Author, Book, MainMessage};
 
 use std::io::BufRead;
@@ -28,6 +31,10 @@ enum ParseState {
     AuthorFirstName,
     AuthorLastName,
 }
+
+// NOTE: We assume that the XML is well-formed and has the
+// correct structure, and we make no effort here to detect
+// and handle badly-formed XML.
 
 fn update_state_on_start(state: ParseState, bytes: & BytesStart, current_book: & mut Option<Book>) -> (ParseState, String) {
     let q_name = bytes.name();
@@ -173,7 +180,7 @@ pub fn read_xml<T: BufRead>(mut reader: Reader<T>, sender: Sender<MainMessage>) 
     let mut parse_state: ParseState = ParseState::OtherTag;
     let mut current_book: Option<Book> = None;
 
-    // Based on the simple example from the docs. for Reader.
+    // Based on the example from the quick-xml docs.
     loop {
         let result = reader.read_event_into(&mut buffer);
         match result {
@@ -206,13 +213,12 @@ pub fn read_xml<T: BufRead>(mut reader: Reader<T>, sender: Sender<MainMessage>) 
                         }
                     }
 
-                    // There are several other `Event`s we do not consider here
+                    // Unhandled event types.
                     _ => output("Event okay but unknown type."),
                 }
             }
         }
 
-        // If we don't keep a borrow elsewhere, we can clear the buffer to keep memory usage low.
         buffer.clear();
     }
 
@@ -220,5 +226,5 @@ pub fn read_xml<T: BufRead>(mut reader: Reader<T>, sender: Sender<MainMessage>) 
 
     sender.send(MainMessage::WorkComplete).unwrap();
 
-    return Ok(());
+    Ok(())
 }
