@@ -14,19 +14,57 @@ async fn add_book(book: & Book, pool: & MySqlPool) {
         isbn = Some(book.isbn.clone());
     }
 
-    let result =
+    let book_result =
         sqlx::query("insert into `book` (`title`, `isbn`) values (?, ?)")
         .bind(book.title.clone()).bind(isbn).execute(pool).await;
 
-    match result {
+    let book_id;
+
+    match book_result {
         Err(e) => {
             let error_string = format!("{}", e);
             println!("Error was: {}", error_string);
             // TODO: Send error back to main thread.
-            ()
+            return ()
         }
 
-        Ok(_) => ()
+        Ok(result) => {
+            book_id = result.last_insert_id()
+        }
+    }
+
+    for author in & book.authors {
+        let author_result = sqlx::query("insert into `author` (`first_name`, `last_name`) values (?, ?)")
+            .bind(author.first_name.clone()).bind(author.last_name.clone()).execute(pool).await;
+
+        let author_id;
+
+        match author_result {
+            Err(e) => {
+                let error_string = format!("{}", e);
+                println!("Error was: {}", error_string);
+                // TODO: Send error back to main thread.
+                continue
+            }
+
+            Ok(result) => {
+                author_id = result.last_insert_id()
+            }
+        }
+
+        let author_book_result = sqlx::query("insert into `author_book` (`author_id`, `book_id`) values (?, ?)")
+            .bind(author_id.clone()).bind(book_id.clone()).execute(pool).await;
+
+        match author_book_result {
+            Err(e) => {
+                let error_string = format!("{}", e);
+                println!("Error was: {}", error_string);
+                // TODO: Send error back to main thread.
+                // TODO: Consider rolling back author insert if this fails.
+            }
+
+            Ok(_) => ()
+        }
     }
 }
 

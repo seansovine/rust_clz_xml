@@ -1,4 +1,4 @@
-use crate::data::{Book, MainMessage};
+use crate::data::{Author, Book, MainMessage};
 
 use std::io::BufRead;
 use std::sync::mpsc::Sender;
@@ -24,6 +24,9 @@ enum ParseState {
     OtherTag,
     //
     AuthorSection,
+    //
+    AuthorFirstName,
+    AuthorLastName,
 }
 
 fn update_state_on_start(state: ParseState, bytes: & BytesStart, current_book: & mut Option<Book>) -> (ParseState, String) {
@@ -43,9 +46,19 @@ fn update_state_on_start(state: ParseState, bytes: & BytesStart, current_book: &
         }
 
         ParseState::CreditTag => match tag_name {
-            "role" => ParseState::RoleIdTag,
+            "roleid" => {
+                ParseState::RoleIdTag
+            },
 
             _ => ParseState::CreditTag
+        }
+
+        ParseState::AuthorSection => match tag_name {
+            "firstname" => ParseState::AuthorFirstName,
+
+            "lastname" => ParseState::AuthorLastName,
+
+            _ => ParseState::AuthorSection
         }
 
         _ => match tag_name {
@@ -71,7 +84,11 @@ fn update_state_on_end(state: ParseState, bytes: & BytesEnd) -> (ParseState, boo
 
         ParseState::IsbnTag => (ParseState::BookTag, false),
 
-        ParseState::CreditTag => (ParseState::BookTag, false),
+        ParseState::CreditTag => match tag_name {
+            "credit" => (ParseState::BookTag, false),
+
+            _ => (ParseState::CreditTag, false),
+        }
 
         ParseState::RoleIdTag => (ParseState::CreditTag, false),
 
@@ -79,6 +96,14 @@ fn update_state_on_end(state: ParseState, bytes: & BytesEnd) -> (ParseState, boo
             "book" => (ParseState::OtherTag, true),
 
             _ => (ParseState::BookTag, false)
+        }
+
+        ParseState::AuthorSection => match tag_name {
+            "credit" => {
+                (ParseState::BookTag, false)
+            },
+
+            _ => (ParseState::AuthorSection, false)
         }
 
         _ => (state, false)
@@ -90,6 +115,12 @@ fn handle_text(state: ParseState, text: & BytesText, current_book: &mut Option<B
         ParseState::TitleTag => {}
 
         ParseState::IsbnTag => {}
+
+        ParseState::RoleIdTag => {}
+
+        ParseState::AuthorFirstName => {}
+
+        ParseState::AuthorLastName => {}
 
         _ => return state
     }
@@ -105,6 +136,27 @@ fn handle_text(state: ParseState, text: & BytesText, current_book: &mut Option<B
 
         ParseState::IsbnTag => {
             current_book.as_mut().unwrap().isbn = text;
+        }
+
+        ParseState::RoleIdTag => if text == "dfAuthor" {
+            current_book.as_mut().unwrap().authors.push(Author::default());
+            return ParseState::AuthorSection;
+        } else {
+            return ParseState::CreditTag;
+        }
+
+        ParseState::AuthorFirstName => {
+            let new_author = current_book.as_mut().unwrap().authors.last_mut().unwrap();
+            new_author.first_name = text;
+
+            return ParseState::AuthorSection;
+        }
+
+        ParseState::AuthorLastName => {
+            let new_author = current_book.as_mut().unwrap().authors.last_mut().unwrap();
+            new_author.last_name = text;
+
+            return ParseState::AuthorSection;
         }
 
         _ => ()

@@ -25,7 +25,7 @@ create table if not exists `book` (
 create table if not exists `author` (
        id int not null auto_increment
      , first_name text not null
-     , middle_names text not null
+     , middle_names text
      , last_name text not null
      --
      , created datetime not null default current_timestamp

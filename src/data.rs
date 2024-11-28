@@ -1,15 +1,15 @@
 /// Data structures common to multiple modules.
 
+#[derive(Default)]
 pub struct Author {
-    first_name: String,
-    middle_name: String,
-    last_name: String,
+    pub first_name: String,
+    pub last_name: String,
 }
 
 pub struct Book {
     pub title: String,
     pub isbn: String,
-    authors: Vec<Author>,
+    pub authors: Vec<Author>,
 }
 
 impl Book {
