@@ -1,4 +1,4 @@
--- Setup our schema for the `collections` database.
+-- Set up our schema for the `collections` database.
 
 -- Needs to be first, unless we disable FKs for delete.
 drop table if exists `author_book`;

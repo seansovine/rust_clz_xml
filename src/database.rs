@@ -3,9 +3,9 @@ use std::sync::mpsc::{Receiver, Sender};
 use sqlx::MySqlPool;
 use tokio::runtime::Runtime;
 
-use crate::data::{Book, DatabaseMessage, MainMessage};
+use crate::data::{Book, DatabaseMessage, DatabaseResult, MainMessage};
 
-async fn add_book(book: & Book, pool: & MySqlPool) {
+async fn add_book(book: & Book, pool: & MySqlPool) -> Result<String, String> {
     // Nullable fields can be bound as Options.
     let isbn: Option<&str>;
     if book.isbn.is_empty() {
@@ -16,20 +16,22 @@ async fn add_book(book: & Book, pool: & MySqlPool) {
 
     let book_result =
         sqlx::query("insert into `book` (`title`, `isbn`) values (?, ?)")
-        .bind(&book.title).bind(isbn).execute(pool).await;
+            .bind(&book.title).bind(isbn).execute(pool).await;
 
     let book_id;
 
+    // Keeping it simple for now, we return a string on success or failure.
+    let result_message: String;
+
     match book_result {
         Err(e) => {
-            let error_string = format!("{}", e);
-            println!("Error was: {}", error_string);
-            // TODO: Send error back to main thread.
-            return ()
+            result_message = format!("Failed to insert book with title '{}'\n  Database error: {}", &book.title, e);
+            return Err(result_message)
         }
 
         Ok(result) => {
-            book_id = result.last_insert_id()
+            book_id = result.last_insert_id();
+            result_message = format!("Inserted book with id {}.", book_id)
         }
     }
 
@@ -66,6 +68,8 @@ async fn add_book(book: & Book, pool: & MySqlPool) {
             Ok(_) => ()
         }
     }
+
+    Ok(result_message)
 }
 
 pub fn database_main(receiver: Receiver<DatabaseMessage>, sender: Sender<MainMessage>) {
@@ -89,9 +93,17 @@ pub fn database_main(receiver: Receiver<DatabaseMessage>, sender: Sender<MainMes
         match message {
             DatabaseMessage::Data(data) => {
                 // Insert into database.
-                runtime.block_on(async {
+                let result = runtime.block_on(async {
                     add_book(&data, &pool).await
                 });
+
+                let message= result.unwrap_or_else(|message| message);
+                sender.send(MainMessage::DatabaseResult(
+                    DatabaseResult{
+                        uid: data.uid,
+                        message
+                    }
+                )).unwrap()
             }
 
             _ => {

@@ -7,23 +7,37 @@ pub struct Author {
 }
 
 pub struct Book {
+    // ID unique per run of the parser
+    pub uid: u32,
+
     pub title: String,
     pub isbn: String,
     pub authors: Vec<Author>,
 }
 
 impl Book {
-    pub fn new_option() -> Option<Book> {
-        Some(Book{ title: String::default(), isbn: String::default(), authors: Vec::default() })
+    pub fn new_option(count: u32) -> Option<Book> {
+        Some(Book{ uid: count, title: String::default(), isbn: String::default(), authors: Vec::default() })
     }
+}
+
+//
+
+pub struct DatabaseResult{
+    pub uid: u32,
+    pub message: String,
 }
 
 // Message enums named after recipient.
 
 pub enum MainMessage {
+    // From parser
     Data(Book),
     WorkComplete,
-    Generic(String),
+    // From database
+    DatabaseResult(DatabaseResult),
+    // Catch-all, for now
+    ParserGeneric(String),
 }
 
 pub enum DatabaseMessage {

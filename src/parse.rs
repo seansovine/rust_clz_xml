@@ -36,7 +36,7 @@ enum ParseState {
 // correct structure, and we make no effort here to detect
 // and handle badly-formed XML.
 
-fn update_state_on_start(state: ParseState, bytes: & BytesStart, current_book: & mut Option<Book>) -> (ParseState, String) {
+fn update_state_on_start(state: ParseState, bytes: & BytesStart, current_book: & mut Option<Book>, count: &mut u32) -> ParseState {
     let q_name = bytes.name();
     let tag_name = std::str::from_utf8(q_name.as_ref()).unwrap();
     output(&format!("Start tag with name: '{}'", tag_name));
@@ -70,7 +70,10 @@ fn update_state_on_start(state: ParseState, bytes: & BytesStart, current_book: &
 
         _ => match tag_name {
             "book" => {
-                *current_book = Book::new_option();
+                // This ordering means we've chosen 1-based UIDs.
+                *count += 1;
+                *current_book = Book::new_option(*count);
+
                 ParseState::BookTag
             }
 
@@ -78,7 +81,7 @@ fn update_state_on_start(state: ParseState, bytes: & BytesStart, current_book: &
         }
     };
 
-    (new_state, String::from(tag_name))
+    new_state
 }
 
 fn update_state_on_end(state: ParseState, bytes: & BytesEnd) -> (ParseState, bool) {
@@ -191,12 +194,7 @@ pub fn read_xml<T: BufRead>(mut reader: Reader<T>, sender: Sender<MainMessage>) 
                     Event::Eof => break,
 
                     Event::Start(e) => {
-                        let name: String;
-                        (parse_state, name) = update_state_on_start(parse_state, &e, &mut current_book);
-
-                        if name == "book" {
-                            count += 1;
-                        }
+                        parse_state = update_state_on_start(parse_state, &e, &mut current_book, &mut count);
                     }
 
                     Event::Text(e) => {
@@ -222,7 +220,7 @@ pub fn read_xml<T: BufRead>(mut reader: Reader<T>, sender: Sender<MainMessage>) 
         buffer.clear();
     }
 
-    sender.send(MainMessage::Generic(format!("Found {} 'book' start tags.", count))).unwrap();
+    sender.send(MainMessage::ParserGeneric(format!("Found {} 'book' start tags.", count))).unwrap();
 
     sender.send(MainMessage::WorkComplete).unwrap();
 

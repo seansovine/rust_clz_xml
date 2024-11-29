@@ -2,11 +2,12 @@ mod parse;
 mod database;
 mod data;
 
+use std::collections::HashSet;
 /// An app to read the CLZ books XML file.
 /// Loads book data extracted from the XML file into a database.
 /// See README files for further discussion.
 
-use crate::data::{DatabaseMessage, MainMessage};
+use crate::data::{DatabaseMessage, DatabaseResult, MainMessage};
 
 use std::env;
 use std::fs::File;
@@ -14,6 +15,7 @@ use std::io::BufReader;
 use std::sync::mpsc;
 use std::thread;
 
+use colored::Colorize;
 use quick_xml::reader::Reader;
 
 fn main() -> std::io::Result<()> {
@@ -45,25 +47,44 @@ fn main() -> std::io::Result<()> {
         database::database_main(database_receiver, main_sender_database);
     });
 
+    let mut database_tasks = HashSet::new();
+
+    let parser_tag = "PARSER".yellow();
+    let database_tag = "DATABASE".red();
+
     // Read books until parser channel sends WorkComplete.
     for message in main_receiver {
         match message {
             MainMessage::Data(book) => {
-                println!("Found book with title: '{}'", book.title);
+                println!(">> {parser_tag}: UID {}: Found book with title: '{}'", book.uid, book.title);
 
+                database_tasks.insert(book.uid);
                 // Send the book data to the database thread.
                 database_sender.send(DatabaseMessage::Data(book)).unwrap()
             }
 
-            MainMessage::WorkComplete => break,
+            MainMessage::WorkComplete => {
+                println!("\n -- {} --\n", "Parser Finished.".green());
+            },
 
-            MainMessage::Generic(message) => {
-                println!("{}", message);
+            MainMessage::DatabaseResult(DatabaseResult{ uid, message}) => {
+                println!("<< {database_tag}: Result for UID {}: {}", uid, message);
+
+                database_tasks.remove(&uid);
+
+                if database_tasks.is_empty() {
+                    // TODO: Use something like curses to keep these at bottom of terminal.
+                    println!("\n -- {} --\n", "All database tasks complete.".blue());
+
+                    break
+                }
+            }
+
+            MainMessage::ParserGeneric(message) => {
+                println!(">> {parser_tag}: {}", message);
             }
         }
     }
-
-    println!("Finished.");
 
     // (This may not be necessary.)
     database_sender.send(DatabaseMessage::ShutdownWhenReady).unwrap();
@@ -72,6 +93,8 @@ fn main() -> std::io::Result<()> {
 
     let _parse_result = parser_handle.join().unwrap();
     let _database_result = database_handle.join().unwrap();
+
+    println!(" --> {} <--", "Done.".green());
 
     Ok(())
 }
