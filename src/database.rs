@@ -7,16 +7,16 @@ use crate::data::{Book, DatabaseMessage, MainMessage};
 
 async fn add_book(book: & Book, pool: & MySqlPool) {
     // Nullable fields can be bound as Options.
-    let isbn: Option<String>;
+    let isbn: Option<&str>;
     if book.isbn.is_empty() {
         isbn = None;
     } else {
-        isbn = Some(book.isbn.clone());
+        isbn = Some(&book.isbn);
     }
 
     let book_result =
         sqlx::query("insert into `book` (`title`, `isbn`) values (?, ?)")
-        .bind(book.title.clone()).bind(isbn).execute(pool).await;
+        .bind(&book.title).bind(isbn).execute(pool).await;
 
     let book_id;
 
@@ -35,7 +35,7 @@ async fn add_book(book: & Book, pool: & MySqlPool) {
 
     for author in & book.authors {
         let author_result = sqlx::query("insert into `author` (`first_name`, `last_name`) values (?, ?)")
-            .bind(author.first_name.clone()).bind(author.last_name.clone()).execute(pool).await;
+            .bind(&author.first_name).bind(&author.last_name).execute(pool).await;
 
         let author_id;
 
@@ -53,7 +53,7 @@ async fn add_book(book: & Book, pool: & MySqlPool) {
         }
 
         let author_book_result = sqlx::query("insert into `author_book` (`author_id`, `book_id`) values (?, ?)")
-            .bind(author_id.clone()).bind(book_id.clone()).execute(pool).await;
+            .bind(&author_id).bind(&book_id).execute(pool).await;
 
         match author_book_result {
             Err(e) => {
