@@ -1,12 +1,11 @@
 /// See docs on the quick-xml reader:
 ///     https://docs.rs/quick-xml/latest/quick_xml/reader/struct.Reader.html
-
 use crate::data::{Author, Book, MainMessage};
 
-use std::io::BufRead;
-use std::sync::mpsc::Sender;
 use quick_xml::events::{BytesEnd, BytesStart, BytesText, Event};
 use quick_xml::Reader;
+use std::io::BufRead;
+use std::sync::mpsc::Sender;
 
 static DEBUG_OUT: bool = false;
 
@@ -36,7 +35,12 @@ enum ParseState {
 // correct structure, and we make no effort here to detect
 // and handle badly-formed XML.
 
-fn update_state_on_start(state: ParseState, bytes: & BytesStart, current_book: & mut Option<Book>, count: &mut u32) -> ParseState {
+fn update_state_on_start(
+    state: ParseState,
+    bytes: &BytesStart,
+    current_book: &mut Option<Book>,
+    count: &mut u32,
+) -> ParseState {
     let q_name = bytes.name();
     let tag_name = std::str::from_utf8(q_name.as_ref()).unwrap();
     output(&format!("Start tag with name: '{}'", tag_name));
@@ -49,24 +53,22 @@ fn update_state_on_start(state: ParseState, bytes: & BytesStart, current_book: &
 
             "credit" => ParseState::CreditTag,
 
-            _ => ParseState::BookTag
-        }
+            _ => ParseState::BookTag,
+        },
 
         ParseState::CreditTag => match tag_name {
-            "roleid" => {
-                ParseState::RoleIdTag
-            },
+            "roleid" => ParseState::RoleIdTag,
 
-            _ => ParseState::CreditTag
-        }
+            _ => ParseState::CreditTag,
+        },
 
         ParseState::AuthorSection => match tag_name {
             "firstname" => ParseState::AuthorFirstName,
 
             "lastname" => ParseState::AuthorLastName,
 
-            _ => ParseState::AuthorSection
-        }
+            _ => ParseState::AuthorSection,
+        },
 
         _ => match tag_name {
             "book" => {
@@ -77,14 +79,14 @@ fn update_state_on_start(state: ParseState, bytes: & BytesStart, current_book: &
                 ParseState::BookTag
             }
 
-            _ => ParseState::OtherTag
-        }
+            _ => ParseState::OtherTag,
+        },
     };
 
     new_state
 }
 
-fn update_state_on_end(state: ParseState, bytes: & BytesEnd) -> (ParseState, bool) {
+fn update_state_on_end(state: ParseState, bytes: &BytesEnd) -> (ParseState, bool) {
     let q_name = bytes.name();
     let tag_name = std::str::from_utf8(q_name.as_ref()).unwrap();
     output(&format!("End tag with name: '{}'", tag_name));
@@ -98,29 +100,27 @@ fn update_state_on_end(state: ParseState, bytes: & BytesEnd) -> (ParseState, boo
             "credit" => (ParseState::BookTag, false),
 
             _ => (ParseState::CreditTag, false),
-        }
+        },
 
         ParseState::RoleIdTag => (ParseState::CreditTag, false),
 
         ParseState::BookTag => match tag_name {
             "book" => (ParseState::OtherTag, true),
 
-            _ => (ParseState::BookTag, false)
-        }
+            _ => (ParseState::BookTag, false),
+        },
 
         ParseState::AuthorSection => match tag_name {
-            "credit" => {
-                (ParseState::BookTag, false)
-            },
+            "credit" => (ParseState::BookTag, false),
 
-            _ => (ParseState::AuthorSection, false)
-        }
+            _ => (ParseState::AuthorSection, false),
+        },
 
-        _ => (state, false)
+        _ => (state, false),
     }
 }
 
-fn handle_text(state: ParseState, text: & BytesText, current_book: &mut Option<Book>) -> ParseState {
+fn handle_text(state: ParseState, text: &BytesText, current_book: &mut Option<Book>) -> ParseState {
     match state {
         ParseState::TitleTag => {}
 
@@ -132,7 +132,7 @@ fn handle_text(state: ParseState, text: & BytesText, current_book: &mut Option<B
 
         ParseState::AuthorLastName => {}
 
-        _ => return state
+        _ => return state,
     }
 
     let text = text.unescape().unwrap().into_owned();
@@ -141,18 +141,23 @@ fn handle_text(state: ParseState, text: & BytesText, current_book: &mut Option<B
         ParseState::TitleTag => {
             output(&format!("Found book with title: '{}'", text));
             current_book.as_mut().unwrap().title = text;
-
         }
 
         ParseState::IsbnTag => {
             current_book.as_mut().unwrap().isbn = text;
         }
 
-        ParseState::RoleIdTag => if text == "dfAuthor" {
-            current_book.as_mut().unwrap().authors.push(Author::default());
-            return ParseState::AuthorSection;
-        } else {
-            return ParseState::CreditTag;
+        ParseState::RoleIdTag => {
+            if text == "dfAuthor" {
+                current_book
+                    .as_mut()
+                    .unwrap()
+                    .authors
+                    .push(Author::default());
+                return ParseState::AuthorSection;
+            } else {
+                return ParseState::CreditTag;
+            }
         }
 
         ParseState::AuthorFirstName => {
@@ -169,14 +174,17 @@ fn handle_text(state: ParseState, text: & BytesText, current_book: &mut Option<B
             return ParseState::AuthorSection;
         }
 
-        _ => ()
+        _ => (),
     }
 
     state
 }
 
 /// Read the XML!
-pub fn read_xml<T: BufRead>(mut reader: Reader<T>, sender: Sender<MainMessage>) -> std::io::Result<()> {
+pub fn read_xml<T: BufRead>(
+    mut reader: Reader<T>,
+    sender: Sender<MainMessage>,
+) -> std::io::Result<()> {
     let mut buffer = Vec::new();
     let mut count: u32 = 0;
 
@@ -194,7 +202,8 @@ pub fn read_xml<T: BufRead>(mut reader: Reader<T>, sender: Sender<MainMessage>) 
                     Event::Eof => break,
 
                     Event::Start(e) => {
-                        parse_state = update_state_on_start(parse_state, &e, &mut current_book, &mut count);
+                        parse_state =
+                            update_state_on_start(parse_state, &e, &mut current_book, &mut count);
                     }
 
                     Event::Text(e) => {
@@ -220,7 +229,12 @@ pub fn read_xml<T: BufRead>(mut reader: Reader<T>, sender: Sender<MainMessage>) 
         buffer.clear();
     }
 
-    sender.send(MainMessage::ParserGeneric(format!("Found {} 'book' start tags.", count))).unwrap();
+    sender
+        .send(MainMessage::ParserGeneric(format!(
+            "Found {} 'book' start tags.",
+            count
+        )))
+        .unwrap();
 
     sender.send(MainMessage::ParserWorkComplete).unwrap();
 

@@ -17,13 +17,18 @@ pub struct Book {
 
 impl Book {
     pub fn new_option(count: u32) -> Option<Book> {
-        Some(Book{ uid: count, title: String::default(), isbn: String::default(), authors: Vec::default() })
+        Some(Book {
+            uid: count,
+            title: String::default(),
+            isbn: String::default(),
+            authors: Vec::default(),
+        })
     }
 }
 
 // Database result type.
 
-pub struct DatabaseResult{
+pub struct DatabaseResult {
     pub uid: u32,
     pub message: String,
 }

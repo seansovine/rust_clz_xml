@@ -1,13 +1,12 @@
-mod parse;
-mod database;
 mod data;
+mod database;
+mod parse;
 
-use std::collections::HashSet;
 /// An app to read the CLZ books XML file.
 /// Loads book data extracted from the XML file into a database.
 /// See README files for further discussion.
-
 use crate::data::{DatabaseMessage, DatabaseResult, MainMessage};
+use std::collections::HashSet;
 
 use std::env;
 use std::fs::File;
@@ -34,9 +33,7 @@ fn main() -> std::io::Result<()> {
 
     let main_sender_parser = main_sender.clone();
     // Start parser thread.
-    let parser_handle = thread::spawn(move || {
-        parse::read_xml(reader, main_sender_parser)
-    });
+    let parser_handle = thread::spawn(move || parse::read_xml(reader, main_sender_parser));
 
     // Create channel to database thread.
     let (database_sender, database_receiver) = mpsc::channel::<DatabaseMessage>();
@@ -56,7 +53,10 @@ fn main() -> std::io::Result<()> {
     for message in main_receiver {
         match message {
             MainMessage::ParserData(book) => {
-                println!(">> {parser_tag}: UID {}: Found book with title: '{}'", book.uid, book.title);
+                println!(
+                    ">> {parser_tag}: UID {}: Found book with title: '{}'",
+                    book.uid, book.title
+                );
 
                 database_tasks.insert(book.uid);
                 // Send the book data to the database thread.
@@ -67,7 +67,7 @@ fn main() -> std::io::Result<()> {
                 println!("\n -- {} --\n", "Parser Finished.".green());
             }
 
-            MainMessage::DatabaseResult(DatabaseResult{ uid, message}) => {
+            MainMessage::DatabaseResult(DatabaseResult { uid, message }) => {
                 println!("<< {database_tag}: Result for UID {}: {}", uid, message);
 
                 database_tasks.remove(&uid);
@@ -76,7 +76,7 @@ fn main() -> std::io::Result<()> {
                     // TODO: Use something like curses to keep these at bottom of terminal.
                     println!("\n -- {} --\n", "All database tasks complete.".blue());
 
-                    break
+                    break;
                 }
             }
 
@@ -87,7 +87,9 @@ fn main() -> std::io::Result<()> {
     }
 
     // (This may not be necessary.)
-    database_sender.send(DatabaseMessage::ShutdownWhenReady).unwrap();
+    database_sender
+        .send(DatabaseMessage::ShutdownWhenReady)
+        .unwrap();
     // Close channel to database.
     drop(database_sender);
 

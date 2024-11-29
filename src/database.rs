@@ -5,7 +5,7 @@ use tokio::runtime::Runtime;
 
 use crate::data::{Book, DatabaseMessage, DatabaseResult, MainMessage};
 
-async fn add_book(book: & Book, pool: & MySqlPool) -> Result<String, String> {
+async fn add_book(book: &Book, pool: &MySqlPool) -> Result<String, String> {
     // Nullable fields can be bound as Options.
     let isbn: Option<&str>;
     if book.isbn.is_empty() {
@@ -14,9 +14,11 @@ async fn add_book(book: & Book, pool: & MySqlPool) -> Result<String, String> {
         isbn = Some(&book.isbn);
     }
 
-    let book_result =
-        sqlx::query("insert into `book` (`title`, `isbn`) values (?, ?)")
-            .bind(&book.title).bind(isbn).execute(pool).await;
+    let book_result = sqlx::query("insert into `book` (`title`, `isbn`) values (?, ?)")
+        .bind(&book.title)
+        .bind(isbn)
+        .execute(pool)
+        .await;
 
     let book_id;
 
@@ -25,8 +27,11 @@ async fn add_book(book: & Book, pool: & MySqlPool) -> Result<String, String> {
 
     match book_result {
         Err(e) => {
-            result_message = format!("Failed to insert book with title '{}'\n  Database error: {}", &book.title, e);
-            return Err(result_message)
+            result_message = format!(
+                "Failed to insert book with title '{}'\n  Database error: {}",
+                &book.title, e
+            );
+            return Err(result_message);
         }
 
         Ok(result) => {
@@ -35,9 +40,13 @@ async fn add_book(book: & Book, pool: & MySqlPool) -> Result<String, String> {
         }
     }
 
-    for author in & book.authors {
-        let author_result = sqlx::query("insert into `author` (`first_name`, `last_name`) values (?, ?)")
-            .bind(&author.first_name).bind(&author.last_name).execute(pool).await;
+    for author in &book.authors {
+        let author_result =
+            sqlx::query("insert into `author` (`first_name`, `last_name`) values (?, ?)")
+                .bind(&author.first_name)
+                .bind(&author.last_name)
+                .execute(pool)
+                .await;
 
         let author_id;
 
@@ -46,16 +55,18 @@ async fn add_book(book: & Book, pool: & MySqlPool) -> Result<String, String> {
                 let error_string = format!("{}", e);
                 println!("Error was: {}", error_string);
                 // TODO: Send error back to main thread.
-                continue
+                continue;
             }
 
-            Ok(result) => {
-                author_id = result.last_insert_id()
-            }
+            Ok(result) => author_id = result.last_insert_id(),
         }
 
-        let author_book_result = sqlx::query("insert into `author_book` (`author_id`, `book_id`) values (?, ?)")
-            .bind(&author_id).bind(&book_id).execute(pool).await;
+        let author_book_result =
+            sqlx::query("insert into `author_book` (`author_id`, `book_id`) values (?, ?)")
+                .bind(&author_id)
+                .bind(&book_id)
+                .execute(pool)
+                .await;
 
         match author_book_result {
             Err(e) => {
@@ -65,7 +76,7 @@ async fn add_book(book: & Book, pool: & MySqlPool) -> Result<String, String> {
                 // TODO: Consider rolling back author insert if this fails.
             }
 
-            Ok(_) => ()
+            Ok(_) => (),
         }
     }
 
@@ -93,23 +104,18 @@ pub fn database_main(receiver: Receiver<DatabaseMessage>, sender: Sender<MainMes
         match message {
             DatabaseMessage::Data(data) => {
                 // Insert into database.
-                let result = runtime.block_on(async {
-                    add_book(&data, &pool).await
-                });
+                let result = runtime.block_on(async { add_book(&data, &pool).await });
 
-                let message= result.unwrap_or_else(|message| message);
-                sender.send(MainMessage::DatabaseResult(
-                    DatabaseResult{
+                let message = result.unwrap_or_else(|message| message);
+                sender
+                    .send(MainMessage::DatabaseResult(DatabaseResult {
                         uid: data.uid,
-                        message
-                    }
-                )).unwrap()
+                        message,
+                    }))
+                    .unwrap()
             }
 
-            _ => {
-                // TODO: Handle any other message types.
-                ()
-            }
+            _ => (), // TODO: Handle any other message types.
         }
     }
 
