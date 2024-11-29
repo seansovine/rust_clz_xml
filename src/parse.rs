@@ -206,7 +206,7 @@ pub fn read_xml<T: BufRead>(mut reader: Reader<T>, sender: Sender<MainMessage>) 
                         (parse_state, ready_to_send) = update_state_on_end(parse_state, &e);
 
                         if ready_to_send {
-                            let message = MainMessage::Data(current_book.take().unwrap());
+                            let message = MainMessage::ParserData(current_book.take().unwrap());
                             sender.send(message).unwrap()
                         }
                     }
@@ -222,7 +222,7 @@ pub fn read_xml<T: BufRead>(mut reader: Reader<T>, sender: Sender<MainMessage>) 
 
     sender.send(MainMessage::ParserGeneric(format!("Found {} 'book' start tags.", count))).unwrap();
 
-    sender.send(MainMessage::WorkComplete).unwrap();
+    sender.send(MainMessage::ParserWorkComplete).unwrap();
 
     Ok(())
 }

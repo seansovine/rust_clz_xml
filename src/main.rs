@@ -55,7 +55,7 @@ fn main() -> std::io::Result<()> {
     // Read books until parser channel sends WorkComplete.
     for message in main_receiver {
         match message {
-            MainMessage::Data(book) => {
+            MainMessage::ParserData(book) => {
                 println!(">> {parser_tag}: UID {}: Found book with title: '{}'", book.uid, book.title);
 
                 database_tasks.insert(book.uid);
@@ -63,9 +63,9 @@ fn main() -> std::io::Result<()> {
                 database_sender.send(DatabaseMessage::Data(book)).unwrap()
             }
 
-            MainMessage::WorkComplete => {
+            MainMessage::ParserWorkComplete => {
                 println!("\n -- {} --\n", "Parser Finished.".green());
-            },
+            }
 
             MainMessage::DatabaseResult(DatabaseResult{ uid, message}) => {
                 println!("<< {database_tag}: Result for UID {}: {}", uid, message);

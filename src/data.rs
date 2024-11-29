@@ -21,7 +21,7 @@ impl Book {
     }
 }
 
-//
+// Database result type.
 
 pub struct DatabaseResult{
     pub uid: u32,
@@ -32,12 +32,13 @@ pub struct DatabaseResult{
 
 pub enum MainMessage {
     // From parser
-    Data(Book),
-    WorkComplete,
-    // From database
-    DatabaseResult(DatabaseResult),
+    ParserData(Book),
+    ParserWorkComplete,
     // Catch-all, for now
     ParserGeneric(String),
+
+    // From database
+    DatabaseResult(DatabaseResult),
 }
 
 pub enum DatabaseMessage {
