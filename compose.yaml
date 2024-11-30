@@ -23,16 +23,18 @@ services:
       retries: 3
 
   deno:
-    container_name: deno-react
+    container_name: deno-react-server
     restart: always
     build:
-      context: ./deno
+      context: ./webapp
       dockerfile: docker/deno.dockerfile
     ports:
       - "3000:3000"
       - "8000:8000"
     volumes:
-      - ./deno:/app
+      - ./webapp:/app
+    environment:
+      ROLE: "server"
 
     depends_on:
       mariadb:

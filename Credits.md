@@ -16,3 +16,12 @@ We based our gRPC setup on the basic Go example in the docs [here](https://grpc.
 
 We based our gRPC server Dockerfile on this example in
 [this](https://hackernoon.com/running-a-grpc-service-with-docker) tutorial.
+
+**Deno + React + Vite + React Table:**
+
+We started with [this](https://github.com/denoland/react-vite-ts-template) Deno
+example project with React and Vite, and Dockerized it for use with our Compose
+application.
+
+Then we added a React Table component that we modified from
+[this](https://tanstack.com/table/latest) example.
