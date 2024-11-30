@@ -16,32 +16,6 @@ type Book = {
   id: number;
 };
 
-const _testData: Book[] = [
-  {
-    title: "War and Peace",
-    year: 1869,
-    isbn: "978-1-85326-062-9",
-    id: 1,
-  },
-  {
-    title: "The Unbearable Lightness of Being",
-    year: 1984,
-    isbn: "978-0061148521",
-    id: 2,
-  },
-];
-
-const newBook = {
-  title: "Dune",
-  year: 1965,
-  isbn: "978-0441013593",
-  id: 3,
-};
-
-// Testing type assertion, which we can
-// use when deserializing the data JSON.
-_testData.push(newBook as Book);
-
 const columnHelper = createColumnHelper<Book>();
 
 const columns = [
