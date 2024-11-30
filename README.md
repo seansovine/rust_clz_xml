@@ -43,6 +43,8 @@ It has a JSON endpoint that serves book record data from our database and
 a frontend client that uses that to generate a React Table component displaying
 the book information. See [webapp/README](webapp/README.md) for more information.
 
+![screenshot](images/web_app_small.png)
+
 ## gRPC Microservice Architecture
 
 We've currently implemented the database
