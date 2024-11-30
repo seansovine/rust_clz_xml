@@ -8,9 +8,9 @@ import BookData from "./bookdata/BookData.ts";
 export const app = new Application();
 const router = new Router();
 
-router.get("/books", (context) => {
+router.get("/books", async (context) => {
   context.response.type = "application/json";
-  context.response.body = BookData();
+  context.response.body = await BookData();
 });
 
 app.use(router.routes());
