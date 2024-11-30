@@ -38,11 +38,10 @@ Docker Compose setup.
 
 ## Deno Web App
 
-We now have a basic React web app to display the book data, served by Deno.
-We started with the `react-vite-ts-template` template available
-[here](https://github.com/denoland/react-vite-ts-template)
-and Dockerized it and modified it for our purposes, including adding
-a React Table component and a JSON data endpoint.
+We now have a basic React web app served by Deno to display the book data.
+It has a JSON endpoint that serves book record data from our database and
+a frontend client that uses that to generate a React Table component displaying
+the book information. See [webapp/README](webapp/README.md) for more information.
 
 ## gRPC Microservice Architecture
 
