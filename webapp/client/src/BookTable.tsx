@@ -68,29 +68,23 @@ const columns = [
 ];
 
 function BookTable() {
-  console.log("Starting book table.");
-
   // Arg of useState sets the initial value.
   const [data, setData] = useState(() => []);
 
   useEffect(() => {
-    console.log("Use effect has called function...");
-
     async function apiCall() {
       // Try to fetch JSON data.
       const response = await fetch("/books");
       const bookData: Book[] = (await response.json()) as Book[];
 
-      console.log("Fetched book data: ");
-      console.log(bookData[0]);
+      // console.log("Fetched book data: ");
+      // console.log(bookData[0]);
 
       setData(bookData);
     }
 
     apiCall();
   }, []);
-
-  console.log("Attempting to build table...");
 
   const table = useReactTable({
     data,
