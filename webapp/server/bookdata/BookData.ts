@@ -22,7 +22,7 @@ async function run_query(): Promise<Book[]> {
 	  return books as Book[]
 }
 
-const testData: Book[] = [
+const _testData: Book[] = [
   {
     title: "War and Peace",
     year: 1869,

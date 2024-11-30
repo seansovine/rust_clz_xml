@@ -22,7 +22,12 @@ th:last-child {
 td {
   border: 1px solid lightgray;
   margin: 0px;
-  padding: 5px 10px;
+  padding: 5px 15px;
+}
+
+td:first-child {
+  text-align:left;
+  max-width: 700px;
 }
 
 tfoot {

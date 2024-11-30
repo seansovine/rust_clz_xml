@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import {
   createColumnHelper,
@@ -16,7 +16,7 @@ type Book = {
   id: number;
 };
 
-const testData: Book[] = [
+const _testData: Book[] = [
   {
     title: "War and Peace",
     year: 1869,
@@ -32,15 +32,15 @@ const testData: Book[] = [
 ];
 
 const newBook = {
-	title: "Dune",
-	year: 1965,
-	isbn: "978-0441013593",
-	id: 3,
+  title: "Dune",
+  year: 1965,
+  isbn: "978-0441013593",
+  id: 3,
 };
 
 // Testing type assertion, which we can
 // use when deserializing the data JSON.
-testData.push(newBook as Book);
+_testData.push(newBook as Book);
 
 const columnHelper = createColumnHelper<Book>();
 
@@ -68,7 +68,29 @@ const columns = [
 ];
 
 function BookTable() {
-  const [data, _setData] = useState(() => [...testData]);
+  console.log("Starting book table.");
+
+  // Arg of useState sets the initial value.
+  const [data, setData] = useState(() => []);
+
+  useEffect(() => {
+    console.log("Use effect has called function...");
+
+    async function apiCall() {
+      // Try to fetch JSON data.
+      const response = await fetch("/books");
+      const bookData: Book[] = (await response.json()) as Book[];
+
+      console.log("Fetched book data: ");
+      console.log(bookData[0]);
+
+      setData(bookData);
+    }
+
+    apiCall();
+  }, []);
+
+  console.log("Attempting to build table...");
 
   const table = useReactTable({
     data,
