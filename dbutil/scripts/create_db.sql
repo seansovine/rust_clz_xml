@@ -14,6 +14,7 @@ create table if not exists `book` (
      -- e.g. 978-0128230350
      , isbn varchar(14)
      , year smallint
+     , publisher text
      --
      , created datetime not null default current_timestamp
      , updated datetime not null default current_timestamp on update current_timestamp

@@ -34,6 +34,10 @@ enum ParseState {
     PublicationYearSection,
     //
     PublicationYearDisplayTag,
+    // Publisher info
+    PublisherSection,
+    //
+    PublisherNameTag,
     // All tags outside of book
     OtherTag,
 }
@@ -62,6 +66,8 @@ fn update_state_on_start(
 
             "publicationdate" => ParseState::PublicationDateSection,
 
+            "publisher" => ParseState::PublisherSection,
+
             _ => ParseState::BookTag,
         },
 
@@ -83,12 +89,18 @@ fn update_state_on_start(
             "year" => ParseState::PublicationYearSection,
 
             _ => ParseState::PublicationDateSection,
-        }
+        },
 
         ParseState::PublicationYearSection => match tag_name {
             "displayname" => ParseState::PublicationYearDisplayTag,
 
             _ => ParseState::PublicationYearSection,
+        },
+
+        ParseState::PublisherSection => match tag_name {
+            "displayname" => ParseState::PublisherNameTag,
+
+            _ => ParseState::PublisherSection,
         }
 
         _ => match tag_name {
@@ -141,6 +153,12 @@ fn update_state_on_end(state: ParseState, bytes: &BytesEnd) -> (ParseState, bool
             "publicationdate" => (ParseState::BookTag, false),
 
             _ => (ParseState::PublicationDateSection, false),
+        },
+
+        ParseState::PublisherSection => match tag_name {
+            "publisher" => (ParseState::BookTag, false),
+
+            _ => (ParseState::PublisherSection, false),
         }
 
         _ => (state, false),
@@ -163,6 +181,8 @@ fn handle_text(state: ParseState, text: &BytesText, current_book: &mut Option<Bo
 
         ParseState::PublicationYearDisplayTag => {}
 
+        ParseState::PublisherNameTag => {}
+
         _ => return state,
     }
 
@@ -175,7 +195,7 @@ fn handle_text(state: ParseState, text: &BytesText, current_book: &mut Option<Bo
         }
 
         ParseState::IsbnTag => {
-            current_book.as_mut().unwrap().isbn = text;
+            current_book.as_mut().unwrap().isbn = if text.is_empty() { None } else { Some(text) }
         }
 
         ParseState::RoleIdTag => {
@@ -215,6 +235,12 @@ fn handle_text(state: ParseState, text: &BytesText, current_book: &mut Option<Bo
 
             // This is all we need from the publication date section.
             return ParseState::PublicationDateSection;
+        }
+
+        ParseState::PublisherNameTag => {
+            current_book.as_mut().unwrap().publisher = Some(text);
+
+            return ParseState::PublisherSection;
         }
 
         _ => (),
