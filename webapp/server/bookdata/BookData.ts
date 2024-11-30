@@ -2,8 +2,9 @@ import { Client } from "deno_mysql";
 
 type Book = {
   title: string;
-  year: number;
-  isbn: string;
+  year: number | null;
+  isbn: string | null;
+  publisher: string | null;
   id: number;
 };
 
@@ -17,7 +18,7 @@ async function run_query(): Promise<Book[]> {
 
 	  console.log("Querying collection database.")
 
-	  const { rows: books } = await client.execute(`select title, year, isbn, id from book`);
+	  const { rows: books } = await client.execute(`select title, year, isbn, publisher, id from book`);
 
 	  return books as Book[]
 }
@@ -27,18 +28,21 @@ const _testData: Book[] = [
     title: "War and Peace",
     year: 1869,
     isbn: "978-1-85326-062-9",
+    publisher: null,
     id: 1,
   },
   {
     title: "The Unbearable Lightness of Being",
     year: 1984,
     isbn: "978-0061148521",
+    publisher: "Harper Perennial Modern Classics",
     id: 2,
   },
   {
     title: "Dune",
     year: 1965,
     isbn: "978-0441013593",
+    publisher: "Ace",
     id: 3,
   },
 ];

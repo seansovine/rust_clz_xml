@@ -11,8 +11,9 @@ import "./BookTable.css";
 
 type Book = {
   title: string;
-  year: number;
-  isbn: string;
+  year: number | null;
+  isbn: string | null;
+  publisher: string | null;
   id: number;
 };
 
@@ -31,6 +32,11 @@ const columns = [
   }),
   columnHelper.accessor("isbn", {
     header: () => <span>ISBN</span>,
+    cell: (info) => info.renderValue(),
+    footer: (info) => info.column.id,
+  }),
+  columnHelper.accessor("publisher", {
+    header: () => <span>Publisher</span>,
     cell: (info) => info.renderValue(),
     footer: (info) => info.column.id,
   }),
