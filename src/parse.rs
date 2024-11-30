@@ -16,6 +16,7 @@ fn output(message: &str) {
 }
 
 /// We use a simple state machine to find the title text.
+/// The state tracks what tag or section we're currently in.
 #[derive(PartialEq, Debug, Copy, Clone)]
 enum ParseState {
     BookTag,
@@ -23,12 +24,18 @@ enum ParseState {
     IsbnTag,
     CreditTag,
     RoleIdTag,
-    OtherTag,
-    //
+    // Author info
     AuthorSection,
     //
     AuthorFirstName,
     AuthorLastName,
+    // Date info
+    PublicationDateSection,
+    PublicationYearSection,
+    //
+    PublicationYearDisplayTag,
+    // All tags outside of book
+    OtherTag,
 }
 
 // NOTE: We assume that the XML is well-formed and has the
@@ -53,6 +60,8 @@ fn update_state_on_start(
 
             "credit" => ParseState::CreditTag,
 
+            "publicationdate" => ParseState::PublicationDateSection,
+
             _ => ParseState::BookTag,
         },
 
@@ -69,6 +78,18 @@ fn update_state_on_start(
 
             _ => ParseState::AuthorSection,
         },
+
+        ParseState::PublicationDateSection => match tag_name {
+            "year" => ParseState::PublicationYearSection,
+
+            _ => ParseState::PublicationDateSection,
+        }
+
+        ParseState::PublicationYearSection => match tag_name {
+            "displayname" => ParseState::PublicationYearDisplayTag,
+
+            _ => ParseState::PublicationYearSection,
+        }
 
         _ => match tag_name {
             "book" => {
@@ -92,6 +113,12 @@ fn update_state_on_end(state: ParseState, bytes: &BytesEnd) -> (ParseState, bool
     output(&format!("End tag with name: '{}'", tag_name));
 
     match state {
+        ParseState::BookTag => match tag_name {
+            "book" => (ParseState::OtherTag, true),
+
+            _ => (ParseState::BookTag, false),
+        },
+
         ParseState::TitleTag => (ParseState::BookTag, false),
 
         ParseState::IsbnTag => (ParseState::BookTag, false),
@@ -104,23 +131,25 @@ fn update_state_on_end(state: ParseState, bytes: &BytesEnd) -> (ParseState, bool
 
         ParseState::RoleIdTag => (ParseState::CreditTag, false),
 
-        ParseState::BookTag => match tag_name {
-            "book" => (ParseState::OtherTag, true),
-
-            _ => (ParseState::BookTag, false),
-        },
-
         ParseState::AuthorSection => match tag_name {
             "credit" => (ParseState::BookTag, false),
 
             _ => (ParseState::AuthorSection, false),
         },
 
+        ParseState::PublicationDateSection => match tag_name {
+            "publicationdate" => (ParseState::BookTag, false),
+
+            _ => (ParseState::PublicationDateSection, false),
+        }
+
         _ => (state, false),
     }
 }
 
 fn handle_text(state: ParseState, text: &BytesText, current_book: &mut Option<Book>) -> ParseState {
+    // NOTE: This allows an early return. The small gain in
+    // efficiency it provides might not be worth the effort.
     match state {
         ParseState::TitleTag => {}
 
@@ -132,10 +161,12 @@ fn handle_text(state: ParseState, text: &BytesText, current_book: &mut Option<Bo
 
         ParseState::AuthorLastName => {}
 
+        ParseState::PublicationYearDisplayTag => {}
+
         _ => return state,
     }
 
-    let text = text.unescape().unwrap().into_owned();
+    let text: String = text.unescape().unwrap().into_owned();
 
     match state {
         ParseState::TitleTag => {
@@ -172,6 +203,18 @@ fn handle_text(state: ParseState, text: &BytesText, current_book: &mut Option<Bo
             new_author.last_name = text;
 
             return ParseState::AuthorSection;
+        }
+
+        ParseState::PublicationYearDisplayTag => {
+            // If parse fails we just set year = None.
+            let year: Option<u16> = match text.parse::<u16>() {
+                Ok(y) => Some(y),
+                Err(_) => None,
+            };
+            current_book.as_mut().unwrap().year = year;
+
+            // This is all we need from the publication date section.
+            return ParseState::PublicationDateSection;
         }
 
         _ => (),

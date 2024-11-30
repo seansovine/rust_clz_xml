@@ -7,6 +7,7 @@ use crate::data::{Book, DatabaseMessage, DatabaseResult, MainMessage};
 
 async fn add_book(book: &Book, pool: &MySqlPool) -> Result<String, String> {
     // Nullable fields can be bound as Options.
+    // TODO: Just make the field an Option<String> in the struct.
     let isbn: Option<&str>;
     if book.isbn.is_empty() {
         isbn = None;
@@ -14,9 +15,10 @@ async fn add_book(book: &Book, pool: &MySqlPool) -> Result<String, String> {
         isbn = Some(&book.isbn);
     }
 
-    let book_result = sqlx::query("insert into `book` (`title`, `isbn`) values (?, ?)")
+    let book_result = sqlx::query("insert into `book` (`title`, `isbn`, `year`) values (?, ?, ?)")
         .bind(&book.title)
         .bind(isbn)
+        .bind(book.year)
         .execute(pool)
         .await;
 

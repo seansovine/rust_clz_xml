@@ -12,6 +12,7 @@ pub struct Book {
 
     pub title: String,
     pub isbn: String,
+    pub year: Option<u16>,
     pub authors: Vec<Author>,
 }
 
@@ -21,6 +22,7 @@ impl Book {
             uid: count,
             title: String::default(),
             isbn: String::default(),
+            year: None,
             authors: Vec::default(),
         })
     }
