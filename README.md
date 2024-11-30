@@ -7,12 +7,25 @@ for my own use, because I like the CLZ mobile app for cataloging
 books, and partly an excuse to try out some nice software
 development tools.
 
-See the `src` folder [README](src/README.md) for some notes on
-the evolving design of the Rust program that reads the CLZ data XML
-file and inserts the data into a database. Currently we extract
-book and author data.
+## Rust Parser
 
-## Database
+The `src` folder has a Rust program that
+extracts data from the CLZ data XML file and inserts the data into the
+database. It uses `quick_xml` for the low level parsing -- specifically we use
+the start and end tags and text contained within tags that it finds. Then
+we have a state machine that allows us to extract only the data we're
+interested in extracting while ignoring other fields.
+
+We use `sqlx` to connect to and insert into the database.
+We have two worker threads -- one for the parser and one for the database --
+and channels between these and the main thread, which manages the work and
+handles console output. This allows some work to be done concurrently,
+but it also helps give the program a simpler and clearer structure.
+
+See [src/README](src/README.md) for more notes on
+the evolving design of this program.
+
+## Database and Docker Compose
 
 **To start the database and web app:**
 
@@ -47,17 +60,17 @@ the book information. See [webapp/README](webapp/README.md) for more information
 
 ## gRPC Microservice Architecture
 
-We've currently implemented the database
+We've currently implemented the Golang database
 utility as a gRPC microservice that can be called remotely with various
 commands from our future TUI. We may also make our Rust XML import program
 run as a gRPC service, so it can be run interactively through the TUI.
 Then the user can provide input to help avoid adding duplicate data
 and for merging data from overlapping records.
 
-The first point of this is to experiment with the technology. But as we expand
-the system, we may find more interesting things to do with it. For example
+Using gRPC opens up some interesting possibilities. For example
 we could run the database service and web app on a Raspberry Pi server so
-it's always available.
+it's always available. Another idea is to add services for creating, managing,
+and restoring database dumps as checkpoints when updating the collection data.
 More details are [here](dbutil/README.md).
 
 ## Next
