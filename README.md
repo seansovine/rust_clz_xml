@@ -73,14 +73,19 @@ it's always available. Another idea is to add services for creating, managing,
 and restoring database dumps as checkpoints when updating the collection data.
 More details are [here](dbutil/README.md).
 
+## Bubbletea TUI
+
+We've added a Golang TUI using the
+[Bubbletea](https://github.com/charmbracelet/bubbletea) framework!
+What we have now is a basic utility to reset the database data and
+schema, but there's so much more we can do with this.
+More ideas are mentioned in [src/README](src/README.md).
+
 ## Next
 
 We will continue adding more fields to the book data we extract from
 the XML file and insert into the database. We will also keep
-working on different ways to view and modify the data.
-On idea we're pretty sure about is a Golang TUI using the
-[Bubbletea](https://github.com/charmbracelet/bubbletea) framework.
-More details and ideas are in the `src` [README](src/README.md).
+working on finding more useful ways to view and modify the data.
 
 ## Sources
 

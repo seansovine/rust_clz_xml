@@ -20,7 +20,8 @@ var (
 // Database connection type.
 
 type DbConnection struct {
-	db *sql.DB
+	db         *sql.DB
+	scriptsDir *string
 }
 
 func NewDb(host string) (*DbConnection, error) {
@@ -30,7 +31,17 @@ func NewDb(host string) (*DbConnection, error) {
 		return nil, err
 	}
 
-	return &DbConnection{db: db}, nil
+	scriptsDirStr, err := scriptsDir()
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &DbConnection{db: db, scriptsDir: &scriptsDirStr}, nil
+}
+
+func (dbc *DbConnection) SetScriptsDir(dir string) {
+	dbc.scriptsDir = &dir
 }
 
 func (dbc *DbConnection) Close() {
@@ -38,19 +49,19 @@ func (dbc *DbConnection) Close() {
 }
 
 func (dbc *DbConnection) ResetDb() error {
-	_, err := runSql(dbc.db, "create_db.sql")
+	_, err := dbc.runSql(dbc.db, "create_db.sql")
 
 	return err
 }
 
 func (dbc *DbConnection) EmptyDb() error {
-	_, err := runSql(dbc.db, "empty_db.sql")
+	_, err := dbc.runSql(dbc.db, "empty_db.sql")
 
 	return err
 }
 
 func (dbc *DbConnection) ImportRecent() error {
-	_, err := runSql(dbc.db, "recent_dump.sql")
+	_, err := dbc.runSql(dbc.db, "recent_dump.sql")
 
 	return err
 }
@@ -71,11 +82,11 @@ func connectDB(host string) (*sql.DB, error) {
 
 // Helpers for running our SQL scripts.
 
-func runSql(db *sql.DB, sqlFile string) (*sql.Result, error) {
+func (dbc *DbConnection) runSql(db *sql.DB, sqlFile string) (*sql.Result, error) {
 	/// Generic function for running a script
 	/// in the dbutil/scripts directory.
 
-	sql, err := readSqlFile(sqlFile)
+	sql, err := dbc.readSqlFile(sqlFile)
 
 	if err != nil {
 		return nil, err
@@ -101,11 +112,8 @@ func scriptsDir() (string, error) {
 	return exePath + "/scripts", nil
 }
 
-func readSqlFile(scriptFile string) (string, error) {
-	scriptPath, err := scriptsDir()
-	if err != nil {
-		return "", nil
-	}
+func (dbc *DbConnection) readSqlFile(scriptFile string) (string, error) {
+	scriptPath := *dbc.scriptsDir
 
 	filename := scriptPath + "/" + scriptFile
 	fileBytes, err := os.ReadFile(filename)

@@ -25,3 +25,8 @@ application.
 
 Then we added a React Table component that we modified from
 [this](https://tanstack.com/table/latest) example.
+
+**Bubbletea TUI framework:**
+
+Our TUI started it's life as a modification of the basic example on
+the Bubbletea GitHub page [here](https://github.com/charmbracelet/bubbletea).
