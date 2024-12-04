@@ -11,6 +11,38 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 )
 
+// Messages and commands
+
+type errorMsg struct {
+	err *error
+}
+
+type statusMsg struct {
+	msg *string
+}
+
+func resetDbCmd(dbConn *dblib.DbConnection) tea.Msg {
+	err := dbConn.EmptyDb()
+	if err != nil {
+		return errorMsg{err: &err}
+	}
+
+	status := "Empty database command succeeded."
+	return statusMsg{msg: &status}
+}
+
+func resetSchemaCmd(dbConn *dblib.DbConnection) tea.Msg {
+	err := dbConn.ResetDb()
+	if err != nil {
+		return errorMsg{err: &err}
+	}
+
+	status := "Database schema reset command succeeded."
+	return statusMsg{msg: &status}
+}
+
+// The main model
+
 type model struct {
 	choices []string // items on the to-do list
 	cursor  int      // which to-do list item our cursor is pointing at
@@ -37,6 +69,14 @@ func (m model) Init() tea.Cmd {
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 
+	case errorMsg:
+		m.statusMsg = nil
+		m.lastError = msg.err
+
+	case statusMsg:
+		m.lastError = nil
+		m.statusMsg = msg.msg
+
 	// Is it a key press?
 	case tea.KeyMsg:
 
@@ -62,22 +102,17 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		// The "enter" key and the spacebar (a literal space) toggle
 		// the selected state for the item that the cursor is pointing at.
 		case "enter", " ":
-			var err error = nil
 			switch m.choices[m.cursor] {
+
 			case "Reset Schema":
-				err = m.dbConn.ResetDb()
+				return m, func() tea.Msg {
+					return resetDbCmd(m.dbConn)
+				}
 
 			case "Reset Data":
-				err = m.dbConn.EmptyDb()
-			}
-
-			if err != nil {
-				m.statusMsg = nil
-				m.lastError = &err
-			} else {
-				m.lastError = nil
-				statusMsg := "Command succeeded."
-				m.statusMsg = &statusMsg
+				return m, func() tea.Msg {
+					return resetSchemaCmd(m.dbConn)
+				}
 			}
 		}
 	}
