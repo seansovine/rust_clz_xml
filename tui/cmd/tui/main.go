@@ -1,3 +1,7 @@
+// CLI for our database utility.
+// Based on the first example at:
+//  git@github.com:charmbracelet/bubbletea.git
+
 package main
 
 import (
@@ -41,11 +45,11 @@ func resetSchemaCmd(dbConn *dblib.DbConnection) tea.Msg {
 	return statusMsg{msg: &status}
 }
 
-// The main model
+// Implement our Bubbletea model
 
 type model struct {
-	choices []string // items on the to-do list
-	cursor  int      // which to-do list item our cursor is pointing at
+	choices []string // available operations
+	cursor  int      // which item cursor is pointing at
 
 	dbConn    *dblib.DbConnection
 	lastError *error
@@ -55,14 +59,13 @@ type model struct {
 
 func initialModel() model {
 	return model{
-		// Our to-do list is a grocery list
 		choices: []string{"Reset Schema", "Reset Data"},
 		cursor:  0,
 	}
 }
 
 func (m model) Init() tea.Cmd {
-	// Just return `nil`, which means "no I/O right now, please."
+	// No initial command
 	return nil
 }
 
@@ -77,32 +80,29 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.lastError = nil
 		m.statusMsg = msg.msg
 
-	// Is it a key press?
+	// Handle key presses
 	case tea.KeyMsg:
 
-		// Cool, what was the actual key pressed?
 		switch msg.String() {
 
-		// These keys should exit the program.
+		// We override ctrl+c?
 		case "ctrl+c", "q":
 			return m, tea.Quit
 
-		// The "up" and "k" keys move the cursor up
 		case "up", "k":
 			if m.cursor > 0 {
 				m.cursor--
 			}
 
-		// The "down" and "j" keys move the cursor down
 		case "down", "j":
 			if m.cursor < len(m.choices)-1 {
 				m.cursor++
 			}
 
-		// The "enter" key and the spacebar (a literal space) toggle
-		// the selected state for the item that the cursor is pointing at.
+		// Enter and space bar
 		case "enter", " ":
 			switch m.choices[m.cursor] {
+			// Closures capture our model's current dbConn.
 
 			case "Reset Schema":
 				return m, func() tea.Msg {
@@ -118,28 +118,23 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	}
 
 	// Return the updated model to the Bubble Tea runtime for processing.
-	// Note that we're not returning a command.
 	return m, nil
 }
 
 func (m model) View() string {
-	// The header
+	// Build screen text.
 	s := "Database management operations:\n\n"
 
-	// Iterate over our choices
 	for i, choice := range m.choices {
 
-		// Is the cursor pointing at this choice?
-		cursor := " " // no cursor
+		cursor := " "
 		if m.cursor == i {
-			cursor = ">" // cursor!
+			cursor = ">"
 		}
 
-		// Render the row
 		s += fmt.Sprintf("%s %s\n", cursor, choice)
 	}
 
-	// The footer
 	s += "\nPress q to quit.\n"
 
 	if m.lastError != nil {
@@ -150,7 +145,7 @@ func (m model) View() string {
 		s += "\n\n"
 	}
 
-	// Send the UI for rendering
+	// Send to the UI for rendering.
 	return s
 }
 
@@ -198,7 +193,7 @@ func main() {
 	p := tea.NewProgram(model)
 
 	if _, err := p.Run(); err != nil {
-		fmt.Printf("A error has ocurred running Bubbletea: %v", err)
+		fmt.Printf("A error has occurred running Bubbletea: %v", err)
 		os.Exit(1)
 	}
 }
