@@ -22,7 +22,7 @@ and channels between these and the main thread, which manages the work and
 handles console output. This allows some work to be done concurrently,
 but it also helps give the program a simpler and clearer structure.
 
-See [src/README](src/README.md) for more notes on
+See [parser/README](parser/README.md) for more notes on
 the evolving design of this program.
 
 ## Database and Docker Compose
@@ -79,7 +79,7 @@ We've added a Golang TUI using the
 [Bubbletea](https://github.com/charmbracelet/bubbletea) framework!
 What we have now is a basic utility to reset the database data and
 schema, but there's so much more we can do with this.
-More ideas are mentioned in [src/README](src/README.md).
+More ideas are mentioned in [parser/README](parser/README.md).
 
 ## Next
 

@@ -3,6 +3,14 @@ name = "clz_data"
 version = "0.1.0"
 edition = "2021"
 
+[[bin]]
+name="clz_data"
+path= "parser/bin/main.rs"
+
+[lib]
+name = "clz_data"
+path = "parser/lib/lib.rs"
+
 [dependencies]
 colored = "2.1.0"
 quick-xml = "0.37.0"
