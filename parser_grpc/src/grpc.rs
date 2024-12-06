@@ -21,37 +21,63 @@ impl ClzXml for ClzXmlService {
   type ParseStream = ReceiverStream<Result<BookRecord, Status>>;
 
   async fn parse(&self, request: Request<File>) -> Result<Response<Self::ParseStream>, Status> {
-    unimplemented!()
+    println!("Starting parse response to client! (Asynchronously.)");
+
+    let (tx, rx) = mpsc::channel(4);
+    let test_books = vec![
+      BookRecord {
+        title: String::from("War and Peace"),
+        year: None,
+        isbn: None,
+        publisher: None,
+        authors: vec![],
+      },
+      BookRecord {
+        title: String::from("Batman"),
+        year: None,
+        isbn: None,
+        publisher: None,
+        authors: vec![],
+      },
+    ];
+
+    tokio::spawn(async move {
+      for book_record in &test_books[..] {
+        tx.send(Ok(book_record.clone())).await.unwrap();
+      }
+    });
+
+    Ok(Response::new(ReceiverStream::new(rx)))
   }
 }
 
 /// Runs the parser thread and reads its results.
 fn _run_parser() {
-	let parser_control = parser_thread_main().unwrap();
+  let parser_control = parser_thread_main().unwrap();
 
-	let parser_tag = "PARSER".yellow();
+  let parser_tag = "PARSER".yellow();
 
-	// Read books until parser channel sends WorkComplete.
-	for message in &parser_control.receiver {
-	  match message {
-		MainMessage::ParserData(book) => {
-		  println!(
-			">> {parser_tag}: UID {}: Found book with title: '{}'",
-			book.uid, book.title
-		  );
-		}
+  // Read books until parser channel sends WorkComplete.
+  for message in &parser_control.receiver {
+    match message {
+      MainMessage::ParserData(book) => {
+        println!(
+          ">> {parser_tag}: UID {}: Found book with title: '{}'",
+          book.uid, book.title
+        );
+      }
 
-		MainMessage::ParserWorkComplete => {
-		  println!("\n -- {} --\n", "Parser Finished.".green());
-		}
+      MainMessage::ParserWorkComplete => {
+        println!("\n -- {} --\n", "Parser Finished.".green());
+      }
 
-		MainMessage::ParserGeneric(message) => {
-		  println!(">> {parser_tag}: {}", message);
-		}
+      MainMessage::ParserGeneric(message) => {
+        println!(">> {parser_tag}: {}", message);
+      }
 
-		_ => panic!("Main received unexpected message type!"),
-	  }
-	}
+      _ => panic!("Main received unexpected message type!"),
+    }
+  }
 
-	let _parse_result = parser_control.handle.join().unwrap();
+  let _parse_result = parser_control.handle.join().unwrap();
 }
