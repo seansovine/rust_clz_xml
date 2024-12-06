@@ -4,7 +4,7 @@ pub mod clz_xml {
 
 use tonic::Request;
 
-use clz_xml::{clz_xml_client::ClzXmlClient, BookRecord, File};
+use clz_xml::{clz_xml_client::ClzXmlClient, File};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {

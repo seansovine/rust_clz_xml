@@ -1,15 +1,12 @@
-use crate::clz_xml::clz_xml_server::{ClzXml, ClzXmlServer};
-use crate::clz_xml::{AuthorRecord, BookRecord, File};
+use crate::clz_xml::clz_xml_server::ClzXml;
+use crate::clz_xml::{BookRecord, File};
 use clz_data::data::MainMessage;
 
 use crate::parser_thread::parser_thread_main;
 
-use std::pin::Pin;
-use std::sync::Arc;
-
 use colored::Colorize;
-use tokio::sync::mpsc;
-use tokio_stream::{wrappers::ReceiverStream, Stream};
+use tokio::sync::mpsc::Sender;
+use tokio_stream::wrappers::ReceiverStream;
 use tonic::{Request, Response, Status};
 
 #[derive(Debug)]
@@ -20,11 +17,12 @@ impl ClzXml for ClzXmlService {
   /// Server streaming response type for the Parse method.
   type ParseStream = ReceiverStream<Result<BookRecord, Status>>;
 
-  async fn parse(&self, request: Request<File>) -> Result<Response<Self::ParseStream>, Status> {
+  async fn parse(&self, _request: Request<File>) -> Result<Response<Self::ParseStream>, Status> {
     println!("Starting parse response to client! (Asynchronously.)");
 
-    let (tx, rx) = mpsc::channel(4);
-    let test_books = vec![
+    let (tx, rx) = tokio::sync::mpsc::channel(4);
+
+    let _test_books = vec![
       BookRecord {
         title: String::from("War and Peace"),
         year: None,
@@ -42,9 +40,7 @@ impl ClzXml for ClzXmlService {
     ];
 
     tokio::spawn(async move {
-      for book_record in &test_books[..] {
-        tx.send(Ok(book_record.clone())).await.unwrap();
-      }
+      run_parser(tx).await;
     });
 
     Ok(Response::new(ReceiverStream::new(rx)))
@@ -52,10 +48,12 @@ impl ClzXml for ClzXmlService {
 }
 
 /// Runs the parser thread and reads its results.
-fn _run_parser() {
+async fn run_parser<T>(tx: Sender<Result<BookRecord, T>>) {
   let parser_control = parser_thread_main().unwrap();
 
   let parser_tag = "PARSER".yellow();
+
+  let mut books_found = vec![];
 
   // Read books until parser channel sends WorkComplete.
   for message in &parser_control.receiver {
@@ -65,6 +63,16 @@ fn _run_parser() {
           ">> {parser_tag}: UID {}: Found book with title: '{}'",
           book.uid, book.title
         );
+
+        let book_record = BookRecord {
+          title: book.title,
+          year: None,
+          isbn: None,
+          publisher: None,
+          authors: vec![],
+        };
+
+		books_found.push(book_record);
       }
 
       MainMessage::ParserWorkComplete => {
@@ -80,4 +88,24 @@ fn _run_parser() {
   }
 
   let _parse_result = parser_control.handle.join().unwrap();
+
+  // NOTE: We would like to send these back to the client as
+  // they are received from the parser, as that would take full
+  // advantage of async. However, the compiler does not like us
+  // awaiting tx.send within the loop over the receiver.
+  //
+  // It seems the reason is that it includes the receiver in the
+  // context of its promise, but that receiver is a std::sync::mpsc
+  // receiver and not a tokio::sync::mpsc receiver, so it doesn't
+  // implement Send.
+  //
+  // We could fix this by using async mpsc's in our parser. But,
+  // that might entail async-ifying much of the rest of that code.
+  // That would be OK. We'll work on that when we get around to it.
+  // For now the task doesn't start sending results until the parser
+  // is finished running.
+
+  for book_record in &books_found {
+	tx.send(Ok(book_record.clone())).await.unwrap();
+  }
 }
