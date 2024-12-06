@@ -3,6 +3,14 @@ name = "parser_grpc"
 version = "0.1.0"
 edition = "2021"
 
+[[bin]]
+name = "parser_grpc"
+path = "src/main.rs"
+
+[[bin]]
+name = "parser_grpc_client"
+path = "src/client.rs"
+
 [dependencies]
 clz_data = { path = "../parser" }
 

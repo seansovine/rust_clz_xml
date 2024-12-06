@@ -1,9 +1,5 @@
-pub mod clz_xml {
-  tonic::include_proto!("clz_xml");
-}
-
-use clz_xml::clz_xml_server::{ClzXml, ClzXmlServer};
-use clz_xml::{AuthorRecord, BookRecord, File};
+use crate::clz_xml::clz_xml_server::{ClzXml, ClzXmlServer};
+use crate::clz_xml::{AuthorRecord, BookRecord, File};
 use clz_data::data::MainMessage;
 
 use crate::parser_thread::parser_thread_main;
@@ -17,7 +13,7 @@ use tokio_stream::{wrappers::ReceiverStream, Stream};
 use tonic::{Request, Response, Status};
 
 #[derive(Debug)]
-struct ClzXmlService;
+pub struct ClzXmlService;
 
 #[tonic::async_trait]
 impl ClzXml for ClzXmlService {
