@@ -4,12 +4,16 @@ version = "0.1.0"
 edition = "2021"
 
 [[bin]]
-name="clz_data"
-path= "parser/bin/main.rs"
+name = "clz_data"
+path = "bin/main.rs"
+
+[[bin]]
+name = "parser_grpc"
+path = "../parser_grpc/src/main.rs"
 
 [lib]
 name = "clz_data"
-path = "parser/lib/lib.rs"
+path = "lib/lib.rs"
 
 [dependencies]
 colored = "2.1.0"
