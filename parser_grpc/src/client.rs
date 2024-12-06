@@ -4,7 +4,7 @@ pub mod clz_xml {
 
 use tonic::Request;
 
-use clz_xml::{clz_xml_client::ClzXmlClient, File};
+use clz_xml::{clz_xml_client::ClzXmlClient, BookRecord, File};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -19,6 +19,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     .await?;
 
   println!("RESPONSE = {:?}", response);
+
+  let mut stream = response.into_inner();
+
+  while let Some(book_record) = stream.message().await? {
+    println!("Book record: {:?}", book_record);
+  }
 
   Ok(())
 }
