@@ -48,6 +48,8 @@ type HomeModel struct {
 
 	lastError *error
 	statusMsg *string
+
+	importModel *DataImportModel
 }
 
 func (m HomeModel) Init() tea.Cmd {
@@ -101,7 +103,32 @@ func (m HomeModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 
 			case "Data Import":
-				return DataImportModel{homeModel: &m}, nil
+				if m.importModel == nil {
+					ch := make(chan any)
+					go parser(ch)
+
+					a := <-ch
+					switch val := a.(type) {
+					case string:
+						statusMsg := "Parse found no records."
+						m.statusMsg = &statusMsg
+
+						return m, nil
+
+					case BookRecord:
+						i := DataImportModel{homeModel: &m, ch: &ch, currentRecord: &val, waiting: false}
+						m.importModel = &i
+
+						return i, nil
+					}
+
+					statusMsg := "An error has occurred."
+					m.statusMsg = &statusMsg
+					return m, nil
+				} else {
+					// Allows continuing an in-process import.
+					return m.importModel, nil
+				}
 			}
 		}
 	}
