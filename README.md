@@ -81,6 +81,12 @@ What we have now is a basic utility to reset the database data and
 schema, but there's so much more we can do with this.
 More ideas are mentioned in [parser/README](parser/README.md).
 
+I've added a component to this to start handling the parser interface and
+have written a Rust gRPC server to send book records found while parsing.
+More details on these things are in [tui/README](tui/README.md).
+Currently the TUI just uses a mock parser for testing, but soon I'll hook
+it up to the Rust gRPC service.
+
 ## Next
 
 We will continue adding more fields to the book data we extract from
