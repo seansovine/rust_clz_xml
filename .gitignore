@@ -7,7 +7,7 @@ scratch/
 
 target/
 bin/
-!src/bin/
+!parser/bin/
 
 .idea
 .vscode
