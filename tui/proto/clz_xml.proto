@@ -1,0 +1,26 @@
+syntax = "proto3";
+
+package clz_xml;
+
+service ClzXml {
+  rpc Parse(File) returns (stream BookRecord) {}
+}
+
+message File {
+  string path = 1;
+}
+
+message BookRecord {
+  string title = 1;
+
+  optional int32 year = 2;
+  optional string isbn = 3;
+  optional string publisher = 4;
+
+  repeated AuthorRecord authors = 5;
+}
+
+message AuthorRecord {
+  string firstName = 1;
+  string lastName = 2;
+}
