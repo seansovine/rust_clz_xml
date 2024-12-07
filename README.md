@@ -73,6 +73,10 @@ it's always available. Another idea is to add services for creating, managing,
 and restoring database dumps as checkpoints when updating the collection data.
 More details are [here](dbutil/README.md).
 
+I've implemented a basic Rust gRPC service, in `parser_grpc`, that parses
+a CLZ XML file and streams information about the records it finds back to the
+caller. Soon I will connect this to the TUI.
+
 ## Bubbletea TUI
 
 We've added a Golang TUI using the
