@@ -1,4 +1,4 @@
-# Bubbletea TUI CLI
+# Bubbletea TUI
 
 This folder has a Golang text user interface (TUI) built using the
 Bubbletea framework. So far it provides an interface to the database

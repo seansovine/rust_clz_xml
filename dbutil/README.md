@@ -90,6 +90,7 @@ make build_client
 
 ## Next
 
-Eventually we will have our future TUI use the gRPC client methods
-to remotely execute commands on the database utility service.
-And we will probably also use the gRPC idea for other services.
+We've started implementing a TUI that calls gRPC services to run the
+database schema and data reset commands, and we're working on a
+feature to allow interactively running the parser to insert data
+records extracted from CLZ XML files. See [/tui/README](../tui/README.md).

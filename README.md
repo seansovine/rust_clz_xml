@@ -2,18 +2,19 @@
 
 I use CLZ books to keep track of my paper books collection.
 This is an app to read the data in the CLZ library export XML
-file and work with it in various ways. It is WIP. This is partly
+file and work with it in various ways. It is partly
 for my own use, because I like the CLZ mobile app for cataloging
-books, and partly an excuse to try out some nice software
-development tools.
+books, and partly an exercise to try out different software
+technologies and designs. It is ongoing and evolving, and I look
+forward to seeing what I can make from it.
 
 ## Rust Parser
 
 The `src` folder has a Rust program that
 extracts data from the CLZ data XML file and inserts the data into the
-database. It uses `quick_xml` for the low level parsing -- specifically we use
+database. It uses `quick_xml` for the low level parsing: Specifically we use
 the start and end tags and text contained within tags that it finds. Then
-we have a state machine that allows us to extract only the data we're
+we implement a state machine that allows us to extract only the data we're
 interested in extracting while ignoring other fields.
 
 We use `sqlx` to connect to and insert into the database.
@@ -26,6 +27,9 @@ See [parser/README](parser/README.md) for more notes on
 the evolving design of this program.
 
 ## Database and Docker Compose
+
+The Docker Compose app has services for the database, the Deno web server,
+and the gRPC Golang database utility. This is configured in [compose.yaml](./compose.yaml).
 
 **To start the database and web app:**
 
@@ -43,58 +47,61 @@ The first time you run this it will create an empty `collection` database.
 **Setting up / resetting the database:**
 
 The `dbutil` folder has a SQL script to dump all data and reset the
-schema, and a little Go program to connect to the database and run it.
+schema, and a Go console program to run these commands or import
+a database dump. You can also run these commands using the TUI described
+below.
 
-See that folder's [README](dbutil/README.md) for instructions on
-resetting the database and updating the schema and notes on our
+See [dbutil/README](dbutil/README.md) for more detailed instructions on
+resetting the database and updating the schema and more notes on our
 Docker Compose setup.
 
-## Deno Web App
+## Deno + React Web App
 
-We now have a basic React web app served by Deno to display the book data.
-It has a JSON endpoint that serves book record data from our database and
-a frontend client that uses that to generate a React Table component displaying
-the book information. See [webapp/README](webapp/README.md) for more information.
+We have a basic React web app served by Deno to display the book data.
+The server has a JSON endpoint that serves book record data from our database, and
+a React frontend client that uses data from that endpoint to generate a page with
+a React Table component displaying book record information.
+See [webapp/README](webapp/README.md) for more information on these.
 
 ![screenshot](images/web_app_small.png)
 
 ## gRPC Microservice Architecture
 
-We've currently implemented the Golang database
-utility as a gRPC microservice that can be called remotely with various
-commands from our future TUI. We may also make our Rust XML import program
-run as a gRPC service, so it can be run interactively through the TUI.
-Then the user can provide input to help avoid adding duplicate data
-and for merging data from overlapping records.
+I've implemented the Golang database
+utility as a gRPC service that can be called by the TUI or by other services.
+I've also started implementing a Rust gRPC serivce for the XML file parser,
+so it can be run interactively through the TUI.
+This will allow the user to provide input on which records from the parser
+should be added to the database. In the future it can be used to help find and merge
+overlapping records.
 
 Using gRPC opens up some interesting possibilities. For example
-we could run the database service and web app on a Raspberry Pi server so
-it's always available. Another idea is to add services for creating, managing,
-and restoring database dumps as checkpoints when updating the collection data.
-More details are [here](dbutil/README.md).
+we could run the database service and web app on a Raspberry Pi server so that
+it's always available. Or I may eventually host this app using a cloud service,
+at which point gRPC communication between services would be very useful.
 
-I've implemented a basic Rust gRPC service, in `parser_grpc`, that parses
-a CLZ XML file and streams information about the records it finds back to the
-caller. Soon I will connect this to the TUI.
+Another idea is to add services for creating, managing,
+and restoring database dumps as checkpoints when updating the collection data.
+More details on the Go gRPC server are [here](dbutil/README.md#grpc-server).
+The Rust gRPC server implementation is in `parser_grpc`.
 
 ## Bubbletea TUI
 
-We've added a Golang TUI using the
-[Bubbletea](https://github.com/charmbracelet/bubbletea) framework!
-What we have now is a basic utility to reset the database data and
-schema, but there's so much more we can do with this.
-More ideas are mentioned in [parser/README](parser/README.md).
+I've added a basic TUI using the Golang
+[Bubbletea](https://github.com/charmbracelet/bubbletea) framework. It currently
+provides a utility to reset the database data and schema, and
+I've recently added a feature to provide a user interface to the parser, using
+the Rust gRPC service to stream book records found while parsing.
+The TUI can display these records to the user and request feedback
+on before inserting them into the database.
 
-I've added a component to this to start handling the parser interface and
-have written a Rust gRPC server to send book records found while parsing.
-More details on these things are in [tui/README](tui/README.md).
-Currently the TUI just uses a mock parser for testing, but soon I'll hook
-it up to the Rust gRPC service.
+More details on the TUI are in [tui/README](tui/README.md).
+There are many more useful things we can do with it.
 
 ## Next
 
 We will continue adding more fields to the book data we extract from
-the XML file and insert into the database. We will also keep
+the XML file and store into the database. We will also keep
 working on finding more useful ways to view and modify the data.
 
 ## Sources
