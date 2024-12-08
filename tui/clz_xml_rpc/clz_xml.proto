@@ -2,6 +2,8 @@ syntax = "proto3";
 
 package clz_xml;
 
+option go_package = "tui/clzxmlserver";
+
 service ClzXml {
   rpc Parse(File) returns (stream BookRecord) {}
 }
