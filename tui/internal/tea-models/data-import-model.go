@@ -5,6 +5,8 @@ import (
 	"sync"
 
 	tea "github.com/charmbracelet/bubbletea"
+
+	"tui/internal/data"
 )
 
 // --------------------------
@@ -14,7 +16,7 @@ type DataImportModel struct {
 	homeModel *HomeModel
 
 	ch            *chan any
-	currentRecord *BookRecord
+	currentRecord *data.BookRecord
 	waiting       bool
 }
 
@@ -46,6 +48,7 @@ func (m DataImportModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			// Go back to home menu.
 			statusMsg := "Parser running."
 			m.homeModel.statusMsg = &statusMsg
+			m.homeModel.lastError = nil
 
 			return m.homeModel, nil
 		}
@@ -62,10 +65,11 @@ func (m DataImportModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		statusMsg := "Parser completed successfully."
 		homeModel.statusMsg = &statusMsg
+		homeModel.lastError = nil
 
 		return homeModel, nil
 
-	case BookRecord:
+	case data.BookRecord:
 		m.currentRecord = &msg
 
 		return m, nil
@@ -116,7 +120,7 @@ func (m DataImportModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			a := <-ch
 
 			switch val := a.(type) {
-			case BookRecord:
+			case data.BookRecord:
 				return val
 
 			case string:
@@ -134,7 +138,7 @@ func (m DataImportModel) View() string {
 	s := "Data Import:\n\n"
 
 	if m.currentRecord != nil {
-		s += fmt.Sprintf("Found book with title: %s\n\n", m.currentRecord.title)
+		s += fmt.Sprintf("Found book with title: %s\n\n", m.currentRecord.Title)
 
 		s += "  (a) Accept current book for database insert.\n"
 		s += "  (r) Reject current book for database insert.\n\n"
@@ -151,10 +155,6 @@ func (m DataImportModel) View() string {
 
 // -------------------------
 // Prototype parser function
-
-type BookRecord struct {
-	title string
-}
 
 // This is just a failsafe ot make sure
 // this function is not run more than once
@@ -178,7 +178,7 @@ func parser(ch chan<- any) {
 	defer close(ch)
 
 	for i := 1; i <= 5; i++ {
-		ch <- BookRecord{title: fmt.Sprintf("Book %d", i)}
+		ch <- data.BookRecord{Title: fmt.Sprintf("Book %d", i)}
 	}
 
 	ch <- "Done"

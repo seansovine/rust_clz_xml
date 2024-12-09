@@ -2,6 +2,9 @@ package tea_models
 
 import (
 	"fmt"
+	
+	"tui/internal/data"
+	"tui/internal/grpc"
 
 	dblib "db-util/src/lib"
 
@@ -105,7 +108,7 @@ func (m HomeModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			case "Data Import":
 				if m.importModel == nil {
 					ch := make(chan any)
-					go parser(ch)
+					go grpc.Parser(ch)
 
 					a := <-ch
 					switch val := a.(type) {
@@ -115,7 +118,7 @@ func (m HomeModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 						return m, nil
 
-					case BookRecord:
+					case data.BookRecord:
 						i := DataImportModel{homeModel: &m, ch: &ch, currentRecord: &val, waiting: false}
 						m.importModel = &i
 
