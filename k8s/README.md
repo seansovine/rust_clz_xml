@@ -104,6 +104,18 @@ However, at this point, viewing the logs using the command above shows
 that there is a database connection error. That will be fixed in the
 next section.
 
+*Clean up:*
+
+To clean up the deployment and Minikube cluster
+after we're done using them, we can run:
+
+```shell
+kubectl delete services deno-web-app
+kubectl delete deployments deno-web-app
+minikube stop
+minikube delete
+```
+
 ## Connecting the our to the Minikube app
 
 Eventually we will consider adding the database to our pod as a stateful
