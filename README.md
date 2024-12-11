@@ -59,8 +59,8 @@ Docker Compose setup.
 
 We have a basic React web app served by Deno to display the book data.
 The server has a JSON endpoint that serves book record data from our database, and
-a React frontend client that uses data from that endpoint to generate a page with
-a React Table component displaying book record information.
+the React frontend client uses data from that endpoint to agenerate a React Table 
+component displaying book record information.
 See [webapp/README](webapp/README.md) for more information on these.
 
 ![screenshot](images/web_app_small.png)
@@ -103,6 +103,11 @@ There are many more useful things we can do with it.
 We will continue adding more fields to the book data we extract from
 the XML file and store into the database. We will also keep
 working on finding more useful ways to view and modify the data.
+
+I'm also thinking about making a version of the app that runs on 
+Kubernetes, in preparation for an eventual cloud-hosted version. I'm
+currently learning more about Kubernetes and moving from Docker Compose
+to that orchestration platform.
 
 ## Sources
 
