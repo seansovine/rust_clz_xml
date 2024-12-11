@@ -47,6 +47,10 @@ RUN chmod a+x start.sh
 
 # USER deno
 
+# We set this here, since we intend to run the startup
+# script as server in deployment.
+ENV ROLE=server
+
 # We remap the host for this instance, since we don't have
 # the Docker Compose hostname when running the container
 # independently. Assumes we run with --net=host.
