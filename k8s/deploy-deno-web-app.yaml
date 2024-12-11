@@ -1,0 +1,25 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    app: deno-web-app
+  name: deno-web-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: deno-web-app
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: deno-web-app
+    spec:
+      containers:
+      - image: deno-novolume
+        name: deno-novolume
+        imagePullPolicy: Never # Since we use a local image.
+        resources: {}
+status: {}

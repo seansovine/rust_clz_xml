@@ -59,7 +59,7 @@ Docker Compose setup.
 
 We have a basic React web app served by Deno to display the book data.
 The server has a JSON endpoint that serves book record data from our database, and
-the React frontend client uses data from that endpoint to agenerate a React Table 
+the React frontend client uses data from that endpoint to agenerate a React Table
 component displaying book record information.
 See [webapp/README](webapp/README.md) for more information on these.
 
@@ -98,16 +98,22 @@ on before inserting them into the database.
 More details on the TUI are in [tui/README](tui/README.md).
 There are many more useful things we can do with it.
 
+## Kubernetes Deployment
+
+I'd eventually like to deploy this using a cloud service, in order to test
+and develop in that environment. For that, it will be useful to set the app
+up to run in Kubernetes. To start working towards that, I've added a Kubernetes
+deployment of the Deno + React web app in the [k8s](./k8s/) directory, and have
+included instructions on how to set it up and run it locally in Minikube.
+See [k8s/README](./k8s/README.md) for the instructions.
+
 ## Next
 
 We will continue adding more fields to the book data we extract from
 the XML file and store into the database. We will also keep
 working on finding more useful ways to view and modify the data.
-
-I'm also thinking about making a version of the app that runs on 
-Kubernetes, in preparation for an eventual cloud-hosted version. I'm
-currently learning more about Kubernetes and moving from Docker Compose
-to that orchestration platform.
+And, we will keep working on adding more features of the app to the
+Kubernetes deployment.
 
 ## Sources
 
