@@ -102,15 +102,14 @@ function BookTable() {
       const response = await fetch(
         "/books?" + new URLSearchParams({ page: currentPage }).toString(),
       );
-      // TODO: Add a component to set the get actual page from user,
-      // and use it to set the query parameter here.
       const bookData: BookData = (await response.json()) as BookData;
-
-      // console.log("Fetched book data: ");
-      // console.log(bookData[0]);
 
       setData(bookData.books);
       setTotalPages(bookData.numPages);
+
+      // NOTE: The PageSelector updates currentPage via a callback.
+      // We enforce the same clamping there that is enforced in the
+      // JSON endpoint, and don't update currentPage here.
     }
 
     apiCall();
@@ -119,9 +118,11 @@ function BookTable() {
   const table = useReactTable({
     data,
     columns,
-    getCoreRowModel: getCoreRowModel(), //row model
+    getCoreRowModel: getCoreRowModel(),
   });
 
+  // PageSelector will call this when the user
+  // changes value of the current page input.
   const pageNumberCallback = (pageNumber: number) => {
     setCurrentPage(pageNumber);
   };
