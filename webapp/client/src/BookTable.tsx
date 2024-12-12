@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import {
   createColumnHelper,
@@ -61,8 +61,10 @@ const columns = [
   }),
 ];
 
+type parentCallbackType = (p: number) => void;
+
 type PageSelectorContext = {
-  parentCallback: (p: number) => void;
+  parentCallback: parentCallbackType;
   initialPage: number;
   totalPages: number;
 };
@@ -72,14 +74,19 @@ function PageSelector(
 ) {
   const [currentPage, setCurrentPage] = useState(initialPage);
 
-  const pageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newPage: number = Math.max(
-      1,
-      Math.min(totalPages, parseInt(e.target.value)),
-    );
-    setCurrentPage(newPage);
-    parentCallback(newPage);
-  };
+  const pageChange = useCallback(
+    (
+      parentCallback: parentCallbackType,
+      e: React.ChangeEvent<HTMLInputElement>,
+    ) => {
+      const newPage: number = Math.max(
+        1,
+        Math.min(totalPages, parseInt(e.target.value)),
+      );
+      setCurrentPage(newPage);
+      parentCallback(newPage);
+    },
+  );
 
   return (
     <>
@@ -89,7 +96,7 @@ function PageSelector(
           className="page-selector"
           type="number"
           value={currentPage}
-          onChange={(e) => pageChange(e)}
+          onChange={(e) => pageChange(parentCallback, e)}
         >
         </input>{" "}
         of {totalPages}:
@@ -112,8 +119,6 @@ function BookTable() {
       );
       const bookData: BookData = (await response.json()) as BookData;
 
-      console.log(bookData);
-
       setData(bookData.books);
       setTotalPages(bookData.numPages);
 
@@ -133,9 +138,9 @@ function BookTable() {
 
   // PageSelector will call this when the user
   // changes value of the current page input.
-  const pageNumberCallback = (pageNumber: number) => {
+  const pageNumberCallback = useCallback((pageNumber: number) => {
     setCurrentPage(pageNumber);
-  };
+  }, []);
 
   return (
     <>
