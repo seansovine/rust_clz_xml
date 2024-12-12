@@ -15,6 +15,9 @@ type Book = {
   isbn: string | null;
   publisher: string | null;
   id: number;
+  // NOTE: For now author string is built in
+  // the backend data endpoint.
+  authorString: string;
 };
 
 type BookData = {
@@ -29,6 +32,11 @@ const columns = [
   columnHelper.accessor("title", {
     cell: (info) => info.getValue(),
     header: () => <span>Title</span>,
+    footer: (info) => info.column.id,
+  }),
+  columnHelper.accessor("authorString", {
+    cell: (info) => info.getValue(),
+    header: () => <span>Authors</span>,
     footer: (info) => info.column.id,
   }),
   columnHelper.accessor("year", {
@@ -103,6 +111,8 @@ function BookTable() {
         "/books?" + new URLSearchParams({ page: currentPage }).toString(),
       );
       const bookData: BookData = (await response.json()) as BookData;
+
+      console.log(bookData);
 
       setData(bookData.books);
       setTotalPages(bookData.numPages);

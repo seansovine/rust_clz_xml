@@ -6,6 +6,9 @@ type Book = {
   isbn: string | null;
   publisher: string | null;
   id: number;
+  // We build the string here for now; later
+  // we might want to send structured author data.
+  authorString: string;
 };
 
 type BookData = {
@@ -19,7 +22,7 @@ async function num_books(client: Client): Promise<number> {
     `select count(*) as numRows from book`,
   );
 
-  if (results === undefined) {
+  if (results === undefined || results.length == 0) {
     return 0;
   }
 
@@ -28,39 +31,88 @@ async function num_books(client: Client): Promise<number> {
 
 const BOOKS_PER_PAGE: number = 25;
 
+type Author = {
+  id: number;
+  first_name: string;
+  last_name: string;
+};
+
+async function book_authors_string(
+  client: Client,
+  book_id: number,
+): Promise<string> {
+  const query = `
+select a.id
+     , a.first_name
+     , a.last_name
+  from author a
+  join author_book ab
+    on a.id = ab.author_id
+   and ab.book_id = ${book_id}
+  `;
+
+  const { rows: authors } = await client.execute(query);
+  const authorArray = <Author[]> authors;
+
+  let authorString = "";
+  for (let i = 0; i < authorArray.length; i++) {
+    const author = authorArray[i];
+    // TODO: Better handle case where first or last is null.
+    authorString += `${author.last_name}, ${author.first_name}`;
+    if (i < authorArray.length - 1) {
+      authorString += "\n";
+    }
+  }
+
+  // console.log(authorArray);
+  // console.log(authorString);
+
+  return authorString;
+}
+
 async function run_query(client: Client, page: number): Promise<Book[]> {
   const lowerLimit = BOOKS_PER_PAGE * (page - 1);
 
   const { rows: books } = await client.execute(
     `select title, year, isbn, publisher, id from book limit ${lowerLimit}, ${BOOKS_PER_PAGE}`,
   );
+  const bookArray = <Book[]> books;
+
+  for (const i in bookArray) {
+    const bookAsBook = <Book> bookArray[i];
+    const authorString: string = await book_authors_string(
+      client,
+      bookAsBook.id,
+    );
+    bookAsBook.authorString = authorString;
+  }
 
   return books as Book[];
 }
 
-const _testData: Book[] = [
-  {
-    title: "War and Peace",
-    year: 1869,
-    isbn: "978-1-85326-062-9",
-    publisher: null,
-    id: 1,
-  },
-  {
-    title: "The Unbearable Lightness of Being",
-    year: 1984,
-    isbn: "978-0061148521",
-    publisher: "Harper Perennial Modern Classics",
-    id: 2,
-  },
-  {
-    title: "Dune",
-    year: 1965,
-    isbn: "978-0441013593",
-    publisher: "Ace",
-    id: 3,
-  },
-];
+// const _testData: Book[] = [
+//   {
+//     title: "War and Peace",
+//     year: 1869,
+//     isbn: "978-1-85326-062-9",
+//     publisher: null,
+//     id: 1,
+//   },
+//   {
+//     title: "The Unbearable Lightness of Being",
+//     year: 1984,
+//     isbn: "978-0061148521",
+//     publisher: "Harper Perennial Modern Classics",
+//     id: 2,
+//   },
+//   {
+//     title: "Dune",
+//     year: 1965,
+//     isbn: "978-0441013593",
+//     publisher: "Ace",
+//     id: 3,
+//   },
+// ];
 
 async function BookData(currentPage: number): Promise<BookData> {
   const client = await new Client().connect({

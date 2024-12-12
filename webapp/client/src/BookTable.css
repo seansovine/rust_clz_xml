@@ -1,7 +1,7 @@
 table {
   border: 1px solid lightgray;
   table-layout: fixed;
-  width: 1350px;
+  width: 1400px;
 }
 
 tbody {
@@ -23,7 +23,7 @@ th:last-child {
 td {
   border: 1px solid lightgray;
   margin: 0px;
-  padding: 5px 15px;
+  padding: 10px 15px;
 }
 
 td:first-child {
@@ -39,6 +39,10 @@ tfoot th {
   font-weight: normal;
 }
 
+p.page-selector {
+  margin-bottom: 1.5em;
+}
+
 input.page-selector {
   width: 3em;
 }
@@ -46,7 +50,11 @@ input.page-selector {
 /* Table header th elements. */
 
 th#title {
-  width: 700px;
+  width: 550px;
+}
+
+th#authorString {
+  width: 200px;
 }
 
 th#isbn {
@@ -54,5 +62,5 @@ th#isbn {
 }
 
 th#publisher {
-  width: 300px;
+  width: 250px;
 }
