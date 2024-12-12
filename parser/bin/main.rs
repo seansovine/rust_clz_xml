@@ -1,6 +1,8 @@
-/// An app to read the CLZ books XML file.
+/// An app to extract data from the CLZ books XML file.
+///
 /// Loads book data extracted from the XML file into a database.
 /// See README files for further discussion.
+///
 use clz_data::data::{DatabaseMessage, DatabaseResult, MainMessage};
 use clz_data::database;
 use clz_data::parse;
@@ -13,11 +15,11 @@ use std::io::BufReader;
 use std::io::{Error, ErrorKind};
 use std::thread;
 
-use tokio::sync::mpsc;
-
 use colored::Colorize;
 use quick_xml::reader::Reader;
+
 use tokio::runtime::Runtime;
+use tokio::sync::mpsc;
 
 const CHANNEL_BUFFER_SIZE: usize = 1000;
 
