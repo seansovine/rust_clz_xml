@@ -63,7 +63,7 @@ the React frontend client uses data from that endpoint to generate a React Table
 component displaying book record information.
 See [webapp/README](webapp/README.md) for more information on these.
 
-![screenshot](images/web_app_small.png)
+![screenshot](images/web_app_cropped.png)
 
 ## gRPC Microservice Architecture
 
