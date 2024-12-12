@@ -12,11 +12,14 @@ use std::env;
 use std::fs::File;
 use std::io::{Error, ErrorKind};
 use std::io::BufReader;
-use std::sync::mpsc;
 use std::thread;
+
+use tokio::sync::mpsc;
 
 use colored::Colorize;
 use quick_xml::reader::Reader;
+
+const CHANNEL_BUFFER_SIZE: usize = 1000;
 
 fn main() -> std::io::Result<()> {
     // Open XML file.
@@ -37,14 +40,14 @@ fn main() -> std::io::Result<()> {
     let reader = Reader::from_reader(reader);
 
     // Channel from workers to main.
-    let (main_sender, main_receiver) = mpsc::channel::<MainMessage>();
+    let (main_sender, mut main_receiver) = mpsc::channel::<MainMessage>(CHANNEL_BUFFER_SIZE);
 
     let main_sender_parser = main_sender.clone();
     // Start parser thread.
     let parser_handle = thread::spawn(move || parse::read_xml(reader, main_sender_parser));
 
     // Create channel to database thread.
-    let (database_sender, database_receiver) = mpsc::channel::<DatabaseMessage>();
+    let (database_sender, database_receiver) = mpsc::channel::<DatabaseMessage>(CHANNEL_BUFFER_SIZE);
     // Rename main sender for symmetry ;)
     let main_sender_database = main_sender;
     // Start database thread.
@@ -58,7 +61,7 @@ fn main() -> std::io::Result<()> {
     let database_tag = "DATABASE".red();
 
     // Read books until parser channel sends WorkComplete.
-    for message in main_receiver {
+    while let Some(message) = main_receiver.blocking_recv() {
         match message {
             MainMessage::ParserData(book) => {
                 println!(
@@ -68,7 +71,7 @@ fn main() -> std::io::Result<()> {
 
                 database_tasks.insert(book.uid);
                 // Send the book data to the database thread.
-                database_sender.send(DatabaseMessage::Data(book)).unwrap()
+                database_sender.blocking_send(DatabaseMessage::Data(book)).unwrap()
             }
 
             MainMessage::ParserWorkComplete => {
@@ -96,7 +99,7 @@ fn main() -> std::io::Result<()> {
 
     // (This may not be necessary.)
     database_sender
-        .send(DatabaseMessage::ShutdownWhenReady)
+        .blocking_send(DatabaseMessage::ShutdownWhenReady)
         .unwrap();
     // Close channel to database.
     drop(database_sender);

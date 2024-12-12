@@ -5,7 +5,8 @@ use crate::data::{Author, Book, MainMessage};
 use quick_xml::events::{BytesEnd, BytesStart, BytesText, Event};
 use quick_xml::Reader;
 use std::io::BufRead;
-use std::sync::mpsc::Sender;
+
+use tokio::sync::mpsc::Sender;
 
 static DEBUG_OUT: bool = false;
 
@@ -285,7 +286,7 @@ pub fn read_xml<T: BufRead>(
 
                         if ready_to_send {
                             let message = MainMessage::ParserData(current_book.take().unwrap());
-                            sender.send(message).unwrap()
+                            sender.blocking_send(message).unwrap()
                         }
                     }
 
@@ -299,13 +300,13 @@ pub fn read_xml<T: BufRead>(
     }
 
     sender
-        .send(MainMessage::ParserGeneric(format!(
+        .blocking_send(MainMessage::ParserGeneric(format!(
             "Found {} 'book' start tags.",
             count
         )))
         .unwrap();
 
-    sender.send(MainMessage::ParserWorkComplete).unwrap();
+    sender.blocking_send(MainMessage::ParserWorkComplete).unwrap();
 
     Ok(())
 }

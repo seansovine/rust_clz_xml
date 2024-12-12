@@ -1,4 +1,4 @@
-use std::sync::mpsc::{Receiver, Sender};
+use tokio::sync::mpsc::{Receiver, Sender};
 
 use sqlx::MySqlPool;
 use tokio::runtime::Runtime;
@@ -6,14 +6,15 @@ use tokio::runtime::Runtime;
 use crate::data::{Book, DatabaseMessage, DatabaseResult, MainMessage};
 
 async fn add_book(book: &Book, pool: &MySqlPool) -> Result<String, String> {
-    let book_result =
-        sqlx::query("insert into `book` (`title`, `isbn`, `year`, `publisher`) values (?, ?, ?, ?)")
-            .bind(&book.title)
-            .bind(&book.isbn)
-            .bind(&book.year)
-            .bind(&book.publisher)
-            .execute(pool)
-            .await;
+    let book_result = sqlx::query(
+        "insert into `book` (`title`, `isbn`, `year`, `publisher`) values (?, ?, ?, ?)",
+    )
+    .bind(&book.title)
+    .bind(&book.isbn)
+    .bind(&book.year)
+    .bind(&book.publisher)
+    .execute(pool)
+    .await;
 
     let book_id;
 
@@ -78,7 +79,7 @@ async fn add_book(book: &Book, pool: &MySqlPool) -> Result<String, String> {
     Ok(result_message)
 }
 
-pub fn database_main(receiver: Receiver<DatabaseMessage>, sender: Sender<MainMessage>) {
+pub fn database_main(mut receiver: Receiver<DatabaseMessage>, sender: Sender<MainMessage>) {
     // Create tokio runtime for blocking on async calls.
     let runtime = Runtime::new().unwrap();
 
@@ -95,7 +96,7 @@ pub fn database_main(receiver: Receiver<DatabaseMessage>, sender: Sender<MainMes
     let pool = runtime.block_on(pool_task).unwrap();
 
     // Main loop: Handle messages until main thread closes channel.
-    for message in receiver {
+    while let Some(message) = receiver.blocking_recv() {
         match message {
             DatabaseMessage::Data(data) => {
                 // Insert into database.
@@ -103,7 +104,7 @@ pub fn database_main(receiver: Receiver<DatabaseMessage>, sender: Sender<MainMes
 
                 let message = result.unwrap_or_else(|message| message);
                 sender
-                    .send(MainMessage::DatabaseResult(DatabaseResult {
+                    .blocking_send(MainMessage::DatabaseResult(DatabaseResult {
                         uid: data.uid,
                         message,
                     }))
