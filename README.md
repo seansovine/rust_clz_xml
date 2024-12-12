@@ -59,7 +59,7 @@ Docker Compose setup.
 
 We have a basic React web app served by Deno to display the book data.
 The server has a JSON endpoint that serves book record data from our database, and
-the React frontend client uses data from that endpoint to agenerate a React Table
+the React frontend client uses data from that endpoint to generate a React Table
 component displaying book record information.
 See [webapp/README](webapp/README.md) for more information on these.
 

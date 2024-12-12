@@ -10,7 +10,7 @@ Note that we have kept the nice CSS styling included the template for use
 in our app.
 
 Our app displays a table of book information from our
-database, using a component from the React Table library. We have a
+database, using a component from the React Table library. We have
 a JSON endpoint to serve the book data, which is called by the frontend client
 to populate its table. Routing for these endpoints
 is handled by the Oak middleware that is included in the template.
@@ -27,8 +27,8 @@ We use a `fetch` call in the client to call a JSON endpoint in `main.ts` to
 get data from our database to the frontend app. To handle the async `fetch`-related
 function calls while updating the table data, we use React's `useEffect` and `useState` hooks.
 
-We have added a paging feature to the JSON endpoint and a corresponding React component
-to let the user choose which page of data is shown, since showing all of our records in
+We have added a paging parameter to the JSON endpoint and a corresponding React component to the page 
+to let the user choose which page of data is shown. This is important since showing all of our records in
 one table is a bit overwhelming when many book records are present.
 
 ## Developer Notes

@@ -40,11 +40,15 @@ func Parser(ch chan<- any) {
 	// Call the streaming endpoint.
 
 	client, closer := makeClient()
+
+	// NOTE: We will want to be able to cancel long-running
+	// parse operations, so we add this context.
+	// TODO: Add a cancellation feature in the UI.
 	ctx, cancel := context.WithCancel(context.Background())
 
 	defer func() {
-		closer()
 		cancel()
+		closer()
 	}()
 
 	file := pb.File{Path: ""}
