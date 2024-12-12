@@ -27,7 +27,8 @@ We use a `fetch` call in the client to call a JSON endpoint in `main.ts` to
 get data from our database to the frontend app. To handle the async `fetch`-related
 function calls while updating the table data, we use React's `useEffect` and `useState` hooks.
 
-We may add a paging feature to the JSON endpoint, since showing all of our records in
+We have added a paging feature to the JSON endpoint and a corresponding React component
+to let the user choose which page of data is shown, since showing all of our records in
 one table is a bit overwhelming when many book records are present.
 
 ## Developer Notes
