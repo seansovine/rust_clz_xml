@@ -53,15 +53,54 @@ const columns = [
   }),
 ];
 
+type PageSelectorContext = {
+  parentCallback: (p: number) => void;
+  initialPage: number;
+  totalPages: number;
+};
+
+function PageSelector(
+  { parentCallback, initialPage, totalPages }: PageSelectorContext,
+) {
+  const [currentPage, setCurrentPage] = useState(initialPage);
+
+  const pageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newPage: number = Math.max(
+      1,
+      Math.min(totalPages, parseInt(e.target.value)),
+    );
+    setCurrentPage(newPage);
+    parentCallback(newPage);
+  };
+
+  return (
+    <>
+      <p className="page-selector">
+        Page{" "}
+        <input
+          className="page-selector"
+          type="number"
+          value={currentPage}
+          onChange={(e) => pageChange(e)}
+        >
+        </input>{" "}
+        of {totalPages}:
+      </p>
+    </>
+  );
+}
+
 function BookTable() {
   // Arg of useState sets the initial value.
   const [data, setData] = useState(() => []);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
 
   useEffect(() => {
     async function apiCall() {
       // Try to fetch JSON data.
       const response = await fetch(
-        "/books?" + new URLSearchParams({ page: "1" }).toString(),
+        "/books?" + new URLSearchParams({ page: currentPage }).toString(),
       );
       // TODO: Add a component to set the get actual page from user,
       // and use it to set the query parameter here.
@@ -71,10 +110,11 @@ function BookTable() {
       // console.log(bookData[0]);
 
       setData(bookData.books);
+      setTotalPages(bookData.numPages);
     }
 
     apiCall();
-  }, []);
+  }, [currentPage]);
 
   const table = useReactTable({
     data,
@@ -82,36 +122,48 @@ function BookTable() {
     getCoreRowModel: getCoreRowModel(), //row model
   });
 
+  const pageNumberCallback = (pageNumber: number) => {
+    setCurrentPage(pageNumber);
+  };
+
   return (
-    <div className="p-2">
-      <table>
-        <thead>
-          {table.getHeaderGroups().map((headerGroup) => (
-            <tr key={headerGroup.id}>
-              {headerGroup.headers.map((header) => (
-                <th key={header.id}>
-                  {header.isPlaceholder ? null : flexRender(
-                    header.column.columnDef.header,
-                    header.getContext(),
-                  )}
-                </th>
-              ))}
-            </tr>
-          ))}
-        </thead>
-        <tbody>
-          {table.getRowModel().rows.map((row) => (
-            <tr key={row.id}>
-              {row.getVisibleCells().map((cell) => (
-                <td key={cell.id}>
-                  {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                </td>
-              ))}
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+    <>
+      <PageSelector
+        parentCallback={pageNumberCallback}
+        initialPage={currentPage}
+        totalPages={totalPages}
+      >
+      </PageSelector>
+      <div className="p-2">
+        <table>
+          <thead>
+            {table.getHeaderGroups().map((headerGroup) => (
+              <tr key={headerGroup.id}>
+                {headerGroup.headers.map((header) => (
+                  <th key={header.id} id={header.id}>
+                    {header.isPlaceholder ? null : flexRender(
+                      header.column.columnDef.header,
+                      header.getContext(),
+                    )}
+                  </th>
+                ))}
+              </tr>
+            ))}
+          </thead>
+          <tbody>
+            {table.getRowModel().rows.map((row) => (
+              <tr key={row.id}>
+                {row.getVisibleCells().map((cell) => (
+                  <td key={cell.id}>
+                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </>
   );
 }
 
