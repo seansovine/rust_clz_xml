@@ -49,14 +49,12 @@ impl ClzXml for ClzXmlService {
 
 /// Runs the parser thread and reads its results.
 async fn run_parser<T>(tx: Sender<Result<BookRecord, T>>) {
-  let parser_control = parser_thread_main().unwrap();
+  let mut parser_control = parser_thread_main().unwrap();
 
   let parser_tag = "PARSER".yellow();
 
-  let mut books_found = vec![];
-
   // Read books until parser channel sends WorkComplete.
-  for message in &parser_control.receiver {
+  while let Some(message) = &parser_control.receiver.recv().await {
     match message {
       MainMessage::ParserData(book) => {
         println!(
@@ -65,14 +63,15 @@ async fn run_parser<T>(tx: Sender<Result<BookRecord, T>>) {
         );
 
         let book_record = BookRecord {
-          title: book.title,
+          title: book.title.clone(),
           year: None,
           isbn: None,
           publisher: None,
           authors: vec![],
         };
 
-		books_found.push(book_record);
+        // books_found.push(book_record);
+        tx.send(Ok(book_record)).await.unwrap();
       }
 
       MainMessage::ParserWorkComplete => {
@@ -88,24 +87,4 @@ async fn run_parser<T>(tx: Sender<Result<BookRecord, T>>) {
   }
 
   let _parse_result = parser_control.handle.join().unwrap();
-
-  // NOTE: We would like to send these back to the client as
-  // they are received from the parser, as that would take full
-  // advantage of async. However, the compiler does not like us
-  // awaiting tx.send within the loop over the receiver.
-  //
-  // It seems the reason is that it includes the receiver in the
-  // context of its promise, but that receiver is a std::sync::mpsc
-  // receiver and not a tokio::sync::mpsc receiver, so it doesn't
-  // implement Send.
-  //
-  // We could fix this by using async mpsc's in our parser. But,
-  // that might entail async-ifying much of the rest of that code.
-  // That would be OK. We'll work on that when we get around to it.
-  // For now the task doesn't start sending results until the parser
-  // is finished running.
-
-  for book_record in &books_found {
-	tx.send(Ok(book_record.clone())).await.unwrap();
-  }
 }
