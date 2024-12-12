@@ -6,7 +6,7 @@ type Book = {
   isbn: string | null;
   publisher: string | null;
   id: number;
-  // We build the string here for now; later
+  // NOTE: We build the string here for now; later
   // we might want to send structured author data.
   authorString: string;
 };
@@ -64,9 +64,6 @@ select a.id
     }
   }
 
-  // console.log(authorArray);
-  // console.log(authorString);
-
   return authorString;
 }
 
@@ -89,30 +86,6 @@ async function run_query(client: Client, page: number): Promise<Book[]> {
 
   return books as Book[];
 }
-
-// const _testData: Book[] = [
-//   {
-//     title: "War and Peace",
-//     year: 1869,
-//     isbn: "978-1-85326-062-9",
-//     publisher: null,
-//     id: 1,
-//   },
-//   {
-//     title: "The Unbearable Lightness of Being",
-//     year: 1984,
-//     isbn: "978-0061148521",
-//     publisher: "Harper Perennial Modern Classics",
-//     id: 2,
-//   },
-//   {
-//     title: "Dune",
-//     year: 1965,
-//     isbn: "978-0441013593",
-//     publisher: "Ace",
-//     id: 3,
-//   },
-// ];
 
 async function BookData(currentPage: number): Promise<BookData> {
   const client = await new Client().connect({
