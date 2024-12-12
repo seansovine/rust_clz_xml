@@ -1,7 +1,7 @@
 table {
   border: 1px solid lightgray;
   table-layout: fixed;
-  width: 1200px;
+  width: 1350px;
 }
 
 tbody {
@@ -54,5 +54,5 @@ th#isbn {
 }
 
 th#publisher {
-  width: 150px;
+  width: 300px;
 }
