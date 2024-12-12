@@ -1,6 +1,7 @@
 table {
   border: 1px solid lightgray;
-  width: 100%;
+  table-layout: fixed;
+  width: 1200px;
 }
 
 tbody {
@@ -36,4 +37,22 @@ tfoot {
 
 tfoot th {
   font-weight: normal;
+}
+
+input.page-selector {
+  width: 3em;
+}
+
+/* Table header th elements. */
+
+th#title {
+  width: 700px;
+}
+
+th#isbn {
+  width: 150px;
+}
+
+th#publisher {
+  width: 150px;
 }
