@@ -29,8 +29,6 @@ async function num_books(client: Client): Promise<number> {
 const BOOKS_PER_PAGE: number = 25;
 
 async function run_query(client: Client, page: number): Promise<Book[]> {
-  // console.log("Querying collection database.");
-
   const lowerLimit = BOOKS_PER_PAGE * (page - 1);
 
   const { rows: books } = await client.execute(
@@ -75,16 +73,10 @@ async function BookData(currentPage: number): Promise<BookData> {
   const numBooks = await num_books(client);
   const numPages = Math.ceil(numBooks / BOOKS_PER_PAGE);
 
-  currentPage = Math.min(currentPage, BOOKS_PER_PAGE);
+  // If the user sends a bad page, we clamp it to the valid range.
+  currentPage = Math.max(0, Math.min(currentPage, numPages));
 
   const books: Book[] = await run_query(client, currentPage);
-
-  // This is just here as a demonstration of how async works,
-  // for now. It would run asyncronously, as the chain of
-  // async function calls that got us here is awaited until
-  // the promises returned are fulfilled.
-  //
-  // console.log(books[0])
 
   return {
     numPages: numPages,
