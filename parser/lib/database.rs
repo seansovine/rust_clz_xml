@@ -1,7 +1,6 @@
 use tokio::sync::mpsc::{Receiver, Sender};
 
 use sqlx::MySqlPool;
-use tokio::runtime::Runtime;
 
 use crate::data::{Book, DatabaseMessage, DatabaseResult, MainMessage};
 
@@ -79,10 +78,7 @@ async fn add_book(book: &Book, pool: &MySqlPool) -> Result<String, String> {
     Ok(result_message)
 }
 
-pub fn database_main(mut receiver: Receiver<DatabaseMessage>, sender: Sender<MainMessage>) {
-    // Create tokio runtime for blocking on async calls.
-    let runtime = Runtime::new().unwrap();
-
+pub async fn database_main(mut receiver: Receiver<DatabaseMessage>, sender: Sender<MainMessage>) {
     let user = "mariadb";
     let password = "p@ssw0rd";
     let host = "localhost:3306";
@@ -93,21 +89,22 @@ pub fn database_main(mut receiver: Receiver<DatabaseMessage>, sender: Sender<Mai
 
     // Create sqlx connection pool.
     let pool_task = MySqlPool::connect(&connection_string);
-    let pool = runtime.block_on(pool_task).unwrap();
+    let pool = pool_task.await.unwrap();
 
     // Main loop: Handle messages until main thread closes channel.
-    while let Some(message) = receiver.blocking_recv() {
+    while let Some(message) = receiver.recv().await {
         match message {
             DatabaseMessage::Data(data) => {
                 // Insert into database.
-                let result = runtime.block_on(async { add_book(&data, &pool).await });
+                let result = add_book(&data, &pool).await;
 
                 let message = result.unwrap_or_else(|message| message);
                 sender
-                    .blocking_send(MainMessage::DatabaseResult(DatabaseResult {
+                    .send(MainMessage::DatabaseResult(DatabaseResult {
                         uid: data.uid,
                         message,
                     }))
+                    .await
                     .unwrap()
             }
 
@@ -116,6 +113,5 @@ pub fn database_main(mut receiver: Receiver<DatabaseMessage>, sender: Sender<Mai
     }
 
     // Gracefully shutdown database connections.
-    let pool_close_task = pool.close();
-    runtime.block_on(pool_close_task);
+    pool.close().await;
 }
