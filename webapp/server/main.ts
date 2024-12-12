@@ -9,8 +9,11 @@ export const app = new Application();
 const router = new Router();
 
 router.get("/books", async (context) => {
+  const pageParam = context.request.url.searchParams.get('page');
+  const page = (pageParam !== null) ? parseInt(pageParam) : 1;
+
   context.response.type = "application/json";
-  context.response.body = await BookData();
+  context.response.body = await BookData(page);
 });
 
 app.use(router.routes());

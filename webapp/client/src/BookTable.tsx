@@ -17,6 +17,12 @@ type Book = {
   id: number;
 };
 
+type BookData = {
+  numPages: number;
+  currentPage: number;
+  books: Book[];
+};
+
 const columnHelper = createColumnHelper<Book>();
 
 const columns = [
@@ -54,13 +60,17 @@ function BookTable() {
   useEffect(() => {
     async function apiCall() {
       // Try to fetch JSON data.
-      const response = await fetch("/books");
-      const bookData: Book[] = (await response.json()) as Book[];
+      const response = await fetch(
+        "/books?" + new URLSearchParams({ page: "1" }).toString(),
+      );
+      // TODO: Add a component to set the get actual page from user,
+      // and use it to set the query parameter here.
+      const bookData: BookData = (await response.json()) as BookData;
 
       // console.log("Fetched book data: ");
       // console.log(bookData[0]);
 
-      setData(bookData);
+      setData(bookData.books);
     }
 
     apiCall();
