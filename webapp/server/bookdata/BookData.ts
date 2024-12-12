@@ -71,10 +71,11 @@ async function BookData(currentPage: number): Promise<BookData> {
   });
 
   const numBooks = await num_books(client);
-  const numPages = Math.ceil(numBooks / BOOKS_PER_PAGE);
+  // We will have at least one page (maybe empty).
+  const numPages = Math.max(1, Math.ceil(numBooks / BOOKS_PER_PAGE));
 
   // If the user sends a bad page, we clamp it to the valid range.
-  currentPage = Math.max(0, Math.min(currentPage, numPages));
+  currentPage = Math.max(1, Math.min(currentPage, numPages));
 
   const books: Book[] = await run_query(client, currentPage);
 
