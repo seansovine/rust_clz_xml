@@ -14,10 +14,12 @@ while the database thread stands by and runs any tasks that are
 sent to it.
 
 It uses `sqlx` to insert records into the database for data extracted
-by the parser.
-We're using `tokio`'s runtime to just block on the async `sqlx`
-methods, but eventually we'll try to take more advantage of the
-async nature of `sqlx`.
+by the parser. Since `sqlx` is implemented using async, we effectively
+run the database thread as an async task by creating a `tokio` runtime
+at the beginning of the thread function and then passing the async
+thread main function to into `block_on`. This allows the databse thread
+to run as if it were an independent async program that can communicate
+with the main thread by message passing.
 
 ## Error / Success Handling in the Rust Code
 
