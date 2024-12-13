@@ -104,6 +104,9 @@ async function BookData(currentPage: number): Promise<BookData> {
 
   const books: Book[] = await run_query(client, currentPage);
 
+  // Close this connection since we're done with it.
+  await client.close();
+
   return {
     numPages: numPages,
     currentPage: currentPage,
