@@ -6,9 +6,9 @@ type Book = {
   isbn: string | null;
   publisher: string | null;
   id: number;
-  // NOTE: We build the string here for now; later
+  // NOTE: We build the strings here for now; later
   // we might want to send structured author data.
-  authorString: string;
+  authors: string[];
 };
 
 type BookData = {
@@ -40,7 +40,7 @@ type Author = {
 async function book_authors_string(
   client: Client,
   book_id: number,
-): Promise<string> {
+): Promise<string[]> {
   const query = `
 select a.id
      , a.first_name
@@ -51,20 +51,18 @@ select a.id
    and ab.book_id = ${book_id}
   `;
 
-  const { rows: authors } = await client.execute(query);
-  const authorArray = <Author[]> authors;
+  const { rows: authorsResult } = await client.execute(query);
+  const authorArray = <Author[]> authorsResult;
 
-  let authorString = "";
+  const authors: string[] = [];
   for (let i = 0; i < authorArray.length; i++) {
     const author = authorArray[i];
     // TODO: Better handle case where first or last is null.
-    authorString += `${author.last_name}, ${author.first_name}`;
-    if (i < authorArray.length - 1) {
-      authorString += "\n";
-    }
+    const authorString = `${author.last_name}, ${author.first_name}`;
+    authors.push(authorString);
   }
 
-  return authorString;
+  return authors;
 }
 
 async function run_query(client: Client, page: number): Promise<Book[]> {
@@ -77,11 +75,11 @@ async function run_query(client: Client, page: number): Promise<Book[]> {
 
   for (const i in bookArray) {
     const bookAsBook = <Book> bookArray[i];
-    const authorString: string = await book_authors_string(
+    const authors: string[] = await book_authors_string(
       client,
       bookAsBook.id,
     );
-    bookAsBook.authorString = authorString;
+    bookAsBook.authors = authors;
   }
 
   return books as Book[];

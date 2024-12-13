@@ -15,9 +15,10 @@ type Book = {
   isbn: string | null;
   publisher: string | null;
   id: number;
-  // NOTE: For now author string is built in
-  // the backend data endpoint.
-  authorString: string;
+  // NOTE: For now author strings are
+  // built in the backend data endpoint.
+  authors: string[];
+  authorsString: string | null;
 };
 
 type BookData = {
@@ -34,8 +35,8 @@ const columns = [
     header: () => <span>Title</span>,
     footer: (info) => info.column.id,
   }),
-  columnHelper.accessor("authorString", {
-    cell: (info) => info.getValue(),
+  columnHelper.accessor("authors", {
+    cell: (info) => info.getValue().map((author) => <div>{author}</div>),
     header: () => <span>Authors</span>,
     footer: (info) => info.column.id,
   }),
@@ -92,7 +93,6 @@ function PageSelector(
   );
 
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
-    console.log(e);
     if (e.key == "o") {
       pageUpdate(currentPage - 1);
     } else if (e.key == "p") {
