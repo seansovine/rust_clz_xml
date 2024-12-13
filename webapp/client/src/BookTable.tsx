@@ -74,19 +74,39 @@ function PageSelector(
 ) {
   const [currentPage, setCurrentPage] = useState(initialPage);
 
+  const pageUpdate = useCallback((n: number) => {
+    const newPage: number = Math.max(
+      1,
+      Math.min(totalPages, n),
+    );
+    setCurrentPage(newPage);
+    parentCallback(newPage);
+  });
+
   const pageChange = useCallback(
     (
-      parentCallback: parentCallbackType,
       e: React.ChangeEvent<HTMLInputElement>,
     ) => {
-      const newPage: number = Math.max(
-        1,
-        Math.min(totalPages, parseInt(e.target.value)),
-      );
-      setCurrentPage(newPage);
-      parentCallback(newPage);
+      pageUpdate(parseInt(e.target.value));
     },
   );
+
+  const handleKeyDown = useCallback((e: KeyboardEvent) => {
+    console.log(e);
+    if (e.key == "o") {
+      pageUpdate(currentPage - 1);
+    } else if (e.key == "p") {
+      pageUpdate(currentPage + 1);
+    }
+  }, [pageUpdate]);
+
+  useEffect(() => {
+    document.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [handleKeyDown]);
 
   return (
     <>
@@ -96,7 +116,7 @@ function PageSelector(
           className="page-selector"
           type="number"
           value={currentPage}
-          onChange={(e) => pageChange(parentCallback, e)}
+          onChange={(e) => pageChange(e)}
         >
         </input>{" "}
         of {totalPages}:
