@@ -22,22 +22,16 @@ impl ClzXml for ClzXmlService {
 
     let (tx, rx) = tokio::sync::mpsc::channel(4);
 
-    let _test_books = vec![
-      BookRecord {
-        title: String::from("War and Peace"),
-        year: None,
-        isbn: None,
-        publisher: None,
-        authors: vec![],
-      },
-      BookRecord {
-        title: String::from("Batman"),
-        year: None,
-        isbn: None,
-        publisher: None,
-        authors: vec![],
-      },
-    ];
+    // TODO: Detect and handle cancellation.
+    //
+    // See the suggestion here:
+    //   https://github.com/hyperium/tonic/issues/196#issuecomment-567137432
+    //
+    // We can make our own stream that wraps receiver and
+    // implements Drop. And we can add a channel to run_parser
+    // that sends a stop message. We can use tokio's oneshot,
+    // as suggested in the post. See:
+    //   https://docs.rs/oneshot/latest/oneshot/
 
     tokio::spawn(async move {
       run_parser(tx, request.into_inner()).await;
