@@ -134,11 +134,38 @@ func (m DataImportModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, nil
 }
 
+// ---------------
+// View functions.
+
+func formatRecord(record data.BookRecord) string {
+	recordString := fmt.Sprintf("Title: %s\n", record.Title)
+
+	if record.Year != nil {
+		recordString += fmt.Sprintf("Year: %d\n", *record.Year)
+	}
+	if record.Isbn != nil {
+		recordString += fmt.Sprintf("Isbn: %s\n", *record.Isbn)
+	}
+	if record.Publisher != nil {
+		recordString += fmt.Sprintf("Publisher: %s\n", *record.Publisher)
+	}
+
+	if len(record.Authors) > 0 {
+		recordString += "Authors:\n"
+		for _, author := range record.Authors {
+			name := fmt.Sprintf("%s, %s", *author.LastName, *author.FirstName)
+			recordString += fmt.Sprintf("  > %s\n", name)
+		}
+	}
+
+	return recordString
+}
+
 func (m DataImportModel) View() string {
 	s := "Data Import:\n\n"
 
 	if m.currentRecord != nil {
-		s += fmt.Sprintf("Found book with title: %s\n\n", m.currentRecord.Title)
+		s += fmt.Sprintf("Found book record:\n\n%s\n", formatRecord(*m.currentRecord))
 
 		s += "  (a) Accept current book for database insert.\n"
 		s += "  (r) Reject current book for database insert.\n\n"

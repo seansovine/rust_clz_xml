@@ -65,7 +65,45 @@ func Parser(ch chan<- any) {
 		if err != nil {
 			log.Fatalf("%v.Parse(_) command failed with error: %v", client, err)
 		}
-		ch <- data.BookRecord{Title: record.Title}
+
+		bookRecord := data.BookRecord{
+			Title: record.Title,
+		}
+
+		// Add optional fields.
+
+		descriptor := record.ProtoReflect().Descriptor()
+		yearField := descriptor.Fields().ByTextName("year")
+		isbnField := descriptor.Fields().ByTextName("isbn")
+		publisherField := descriptor.Fields().ByTextName("publisher")
+
+		if record.ProtoReflect().Has(yearField) {
+			year := record.GetYear()
+			bookRecord.Year = &year
+		}
+		if record.ProtoReflect().Has(isbnField) {
+			isbn := record.GetIsbn()
+			bookRecord.Isbn = &isbn
+		}
+		if record.ProtoReflect().Has(publisherField) {
+			publisher := record.GetPublisher()
+			bookRecord.Publisher = &publisher
+		}
+
+		// Add authors
+
+		for _, author := range record.GetAuthors() {
+			firstName := author.GetFirstName()
+			lastName := author.GetLastName()
+			bookRecord.Authors = append(bookRecord.Authors, data.AuthorRecord{
+				FirstName: &firstName,
+				LastName:  &lastName,
+			})
+		}
+
+		// Now send the record to Bubbletea goroutine
+
+		ch <- bookRecord
 	}
 
 	ch <- "Done"
