@@ -8,6 +8,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 
 	"tui/internal/data"
+	"tui/internal/grpc"
 )
 
 // --------------------------
@@ -202,6 +203,44 @@ func (m DataImportModel) View() string {
 	s += "Press b to return to home.\n"
 
 	return s
+}
+
+// ----------------------
+// For use by home model.
+
+func launchImport(m *HomeModel) tea.Model {
+	// Launch gRPC parser goroutine.
+	ch := make(chan any)
+	ctx, cancel := context.WithCancel(context.Background())
+	go grpc.Parser(ctx, ch)
+
+	// Try to get first record from parser;
+	// if there is none we go back to main menu.
+	a := <-ch
+	switch val := a.(type) {
+	case string:
+		statusMsg := "Parse found no records."
+		m.statusMsg = &statusMsg
+		m.importModel = nil
+
+		cancel()
+
+		return m
+
+	case data.BookRecord:
+		i := DataImportModel{homeModel: m, ch: &ch, cancelFunc: &cancel, currentRecord: &val, waiting: false}
+		m.importModel = &i
+
+		return i
+
+	default:
+		statusMsg := "An error has occurred."
+		m.statusMsg = &statusMsg
+
+		cancel()
+
+		return m
+	}
 }
 
 // -------------------------

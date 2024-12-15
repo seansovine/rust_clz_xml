@@ -1,11 +1,7 @@
 package tea_models
 
 import (
-	"context"
 	"fmt"
-
-	"tui/internal/data"
-	"tui/internal/grpc"
 
 	dblib "db-util/src/lib"
 
@@ -108,38 +104,7 @@ func (m HomeModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 			case "Data Import":
 				if m.importModel == nil {
-					// Launch gRPC parser goroutine.
-					ch := make(chan any)
-					ctx, cancel := context.WithCancel(context.Background())
-					go grpc.Parser(ctx, ch)
-
-					// Try to get first record from parser;
-					// if there is none we go back to main menu.
-					a := <-ch
-					switch val := a.(type) {
-					case string:
-						statusMsg := "Parse found no records."
-						m.statusMsg = &statusMsg
-						m.importModel = nil
-
-						cancel()
-
-						return m, nil
-
-					case data.BookRecord:
-						i := DataImportModel{homeModel: &m, ch: &ch, cancelFunc: &cancel, currentRecord: &val, waiting: false}
-						m.importModel = &i
-
-						return i, nil
-
-					default:
-						statusMsg := "An error has occurred."
-						m.statusMsg = &statusMsg
-
-						cancel()
-
-						return m, nil
-					}
+					return launchImport(&m), nil
 				} else {
 					// Allows continuing an in-process import.
 					return m.importModel, nil
