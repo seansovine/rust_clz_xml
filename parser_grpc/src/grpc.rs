@@ -1,5 +1,5 @@
 use crate::clz_xml::clz_xml_server::ClzXml;
-use crate::clz_xml::{BookRecord, File};
+use crate::clz_xml::{AuthorRecord, BookRecord, File};
 use clz_data::data::MainMessage;
 
 use crate::parser_thread::parser_thread_main;
@@ -62,13 +62,27 @@ async fn run_parser<T>(tx: Sender<Result<BookRecord, T>>) {
           book.uid, book.title
         );
 
-        let book_record = BookRecord {
+        let mut book_record = BookRecord {
           title: book.title.clone(),
-          year: None,
-          isbn: None,
-          publisher: None,
+          year: book.year.map(|year| year as i32),
+          isbn: book.isbn.clone(),
+          publisher: book.publisher.clone(),
           authors: vec![],
         };
+
+        book_record.authors = book
+          .authors
+          .iter()
+          .map(|author| {
+            println!("Adding an author!");
+            AuthorRecord {
+              first_name: author.first_name.clone(),
+              last_name: author.last_name.clone(),
+            }
+          })
+          .collect();
+
+        println!("Book record now has {} authors!", book_record.authors.len());
 
         // books_found.push(book_record);
         tx.send(Ok(book_record)).await.unwrap();
