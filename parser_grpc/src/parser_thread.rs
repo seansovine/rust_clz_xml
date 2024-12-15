@@ -17,8 +17,8 @@ pub struct ParserControl {
   pub receiver: Receiver<MainMessage>,
 }
 
-pub fn parser_thread_main() -> Result<ParserControl, Box<dyn std::error::Error>> {
-  let file_path = "../data/clz_data_sample.xml";
+pub fn parser_thread_main(filename: &str) -> Result<ParserControl, Box<dyn std::error::Error>> {
+  let file_path = "../data/".to_owned() + filename;
   let file = File::open(file_path)?;
 
   // Create buffered reader.

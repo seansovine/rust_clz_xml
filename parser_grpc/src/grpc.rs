@@ -17,7 +17,7 @@ impl ClzXml for ClzXmlService {
   /// Server streaming response type for the Parse method.
   type ParseStream = ReceiverStream<Result<BookRecord, Status>>;
 
-  async fn parse(&self, _request: Request<File>) -> Result<Response<Self::ParseStream>, Status> {
+  async fn parse(&self, request: Request<File>) -> Result<Response<Self::ParseStream>, Status> {
     println!("Starting parse response to client! (Asynchronously.)");
 
     let (tx, rx) = tokio::sync::mpsc::channel(4);
@@ -40,7 +40,7 @@ impl ClzXml for ClzXmlService {
     ];
 
     tokio::spawn(async move {
-      run_parser(tx).await;
+      run_parser(tx, request.into_inner()).await;
     });
 
     Ok(Response::new(ReceiverStream::new(rx)))
@@ -48,8 +48,8 @@ impl ClzXml for ClzXmlService {
 }
 
 /// Runs the parser thread and reads its results.
-async fn run_parser<T>(tx: Sender<Result<BookRecord, T>>) {
-  let mut parser_control = parser_thread_main().unwrap();
+async fn run_parser<T>(tx: Sender<Result<BookRecord, T>>, file: File) {
+  let mut parser_control = parser_thread_main(&file.path).unwrap();
 
   let parser_tag = "PARSER".yellow();
 
