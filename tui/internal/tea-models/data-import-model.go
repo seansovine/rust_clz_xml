@@ -1,6 +1,7 @@
 package tea_models
 
 import (
+	"context"
 	"fmt"
 	"sync"
 
@@ -15,7 +16,9 @@ import (
 type DataImportModel struct {
 	homeModel *HomeModel
 
-	ch            *chan any
+	ch         *chan any
+	cancelFunc *context.CancelFunc
+
 	currentRecord *data.BookRecord
 	waiting       bool
 }
@@ -60,6 +63,11 @@ func (m DataImportModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m.homeModel, nil
 
 	case string: // "Done" case.
+		// Maybe not necessary, but shouldn't hurt.
+		cancel := *m.cancelFunc
+		cancel()
+		m.cancelFunc = nil
+
 		homeModel := m.homeModel
 		homeModel.importModel = nil
 
@@ -105,8 +113,22 @@ func (m DataImportModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			// And maybe add confirm, since this could be dangerous!
 
 		case "R":
-			// TODO: Implement "reject all", and maybe add confirm,
-			// since this could be dangerous!
+			cancel := *m.cancelFunc
+			cancel()
+			m.cancelFunc = nil
+
+			homeModel := m.homeModel
+			homeModel.importModel = nil
+
+			statusMsg := "Parsing was cancelled."
+			homeModel.statusMsg = &statusMsg
+			homeModel.lastError = nil
+
+			return homeModel, nil
+
+			// TODO: Add an "are you sure" state, that stores
+			// last message and asks for confirm, then if "yes"
+			// re-emits the message. (Think about this.)
 		}
 	}
 
@@ -168,7 +190,9 @@ func (m DataImportModel) View() string {
 		s += fmt.Sprintf("Found book record:\n\n%s\n", formatRecord(*m.currentRecord))
 
 		s += "  (a) Accept current book for database insert.\n"
-		s += "  (r) Reject current book for database insert.\n\n"
+		s += "  (r) Reject current book for database insert.\n"
+		s += "  (R) To cancel parsing all remaining records.\n\n"
+
 	} else if m.waiting == false {
 		s += "Press any key to start receiving.\n\n"
 	} else {
@@ -183,17 +207,18 @@ func (m DataImportModel) View() string {
 // -------------------------
 // Prototype parser function
 
-// This is just a failsafe ot make sure
-// this function is not run more than once
-// simultaneously.
+// This is here so we can test the TUI
+// without connecting to the gRPC endpoint.
+//
+// TODO: Maybe remove this later, or make
+// a test package with this and other test code.
+
+// A failsafe for testing, to make sure this function
+// is not run more than once simultaneously.
 var runCountMutex sync.Mutex
 var runCount = 0
 
 func parser(ch chan<- any) {
-	// TODO: After testing the architecture, we'll make this
-	// actually call our gRPC parser endpoint and return any
-	// records it finds while parsing the CLZ XML file.
-
 	// Increment run count and verify this is only instance.
 	runCountMutex.Lock()
 	if runCount > 0 {

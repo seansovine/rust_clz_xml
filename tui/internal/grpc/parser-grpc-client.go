@@ -2,10 +2,11 @@ package grpc
 
 import (
 	"context"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
 	"io"
 	"log"
+
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 
 	"tui/internal/data"
 
@@ -34,24 +35,15 @@ func makeClient() (*pb.ClzXmlClient, func()) {
 	return &client, closer
 }
 
-func Parser(ch chan<- any) {
+func Parser(ctx context.Context, ch chan<- any) {
 	defer close(ch)
 
 	// Call the streaming endpoint.
 
 	client, closer := makeClient()
+	defer closer()
 
-	// NOTE: We will want to be able to cancel long-running
-	// parse operations, so we add this context.
-	// TODO: Add a cancellation feature in the UI.
-	ctx, cancel := context.WithCancel(context.Background())
-
-	defer func() {
-		cancel()
-		closer()
-	}()
-
-	file := pb.File{Path: ""}
+	file := pb.File{Path: "clz_data_sample.xml"}
 	stream, err := (*client).Parse(ctx, &file)
 	if err != nil {
 		log.Fatalf("%v.Parse RPC call failed with error: %v", client, err)
