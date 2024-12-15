@@ -3,8 +3,6 @@ package tea_models
 import (
 	"context"
 	"fmt"
-	"sync"
-
 	tea "github.com/charmbracelet/bubbletea"
 
 	"tui/internal/data"
@@ -242,43 +240,3 @@ func launchImport(m *HomeModel) tea.Model {
 		return m
 	}
 }
-
-// -------------------------
-// Prototype parser function
-
-// This is here so we can test the TUI
-// without connecting to the gRPC endpoint.
-//
-// TODO: Maybe remove this later, or make
-// a test package with this and other test code.
-
-// A failsafe for testing, to make sure this function
-// is not run more than once simultaneously.
-var runCountMutex sync.Mutex
-var runCount = 0
-
-func parser(ch chan<- any) {
-	// Increment run count and verify this is only instance.
-	runCountMutex.Lock()
-	if runCount > 0 {
-		panic("Parser goroutine should be a singleton.")
-	}
-	runCount++
-	runCountMutex.Unlock()
-
-	defer close(ch)
-
-	for i := 1; i <= 5; i++ {
-		ch <- data.BookRecord{Title: fmt.Sprintf("Book %d", i)}
-	}
-
-	ch <- "Done"
-
-	// Decrement run count.
-	runCountMutex.Lock()
-	runCount--
-	runCountMutex.Unlock()
-}
-
-// For setting delve breakpoint:
-//  b internal/tea-models/data-import-model.go:177
