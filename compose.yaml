@@ -59,3 +59,14 @@ services:
       mariadb:
         condition: service_healthy
         restart: true
+
+  parser-grpc:
+    container_name: parser-grpc
+    restart: always
+    build:
+      context: .
+      dockerfile: parser_grpc/docker/parser-grpc.dockerfile
+    ports:
+      - "10000:10000"
+    volumes:
+      - ./data:/data

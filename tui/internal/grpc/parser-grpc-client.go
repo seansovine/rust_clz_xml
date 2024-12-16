@@ -13,7 +13,7 @@ import (
 	pb "tui/clz_xml_rpc"
 )
 
-var serverAddr = "[::1]:10000"
+var serverAddr = "localhost:10000"
 
 func makeClient() (*pb.ClzXmlClient, func()) {
 	var opts []grpc.DialOption

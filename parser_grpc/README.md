@@ -22,3 +22,33 @@ to keep the `.proto` files shared by multiple sub-projects in
 a common folder, and to just modify the appropriate build scripts
 to look there. That way we avoid duplication and having to keep
 things in sync.
+
+## Docker build and run
+
+There is a Dockerfile for a container to build and run the parser
+gRPC serve in the `docker` subfolder of this folder. You can build
+the image by
+
+```shell
+cd $PROJECT_ROOT
+docker build -t parser-grpc -f parser_grpc/docker/parser-grpc.dockerfile .
+```
+
+and run the server in the container with
+
+```shell
+docker run -it --rm --mount type=bind,src=./data/,dst=/data \
+	-p 10000:10000 --name parser-grpc-service parser-grpc
+```
+
+And you can stop it with
+
+```shell
+docker stop parser-grpc-service
+```
+
+We've also added this as a `parser-grpc` service in the Docker Compose app:
+
+```shell
+docker compose up parser-grpc
+```
