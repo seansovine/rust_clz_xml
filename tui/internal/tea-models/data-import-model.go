@@ -16,7 +16,7 @@ type DataImportModel struct {
 	homeModel *HomeModel
 
 	ch         *chan any
-	cancelFunc *context.CancelFunc
+	cancelFunc context.CancelFunc
 
 	currentRecord *data.BookRecord
 	waiting       bool
@@ -63,8 +63,7 @@ func (m DataImportModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case string: // "Done" case.
 		// Maybe not necessary, but shouldn't hurt.
-		cancel := *m.cancelFunc
-		cancel()
+		m.cancelFunc()
 		m.cancelFunc = nil
 
 		homeModel := m.homeModel
@@ -112,8 +111,7 @@ func (m DataImportModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			// And maybe add confirm, since this could be dangerous!
 
 		case "R":
-			cancel := *m.cancelFunc
-			cancel()
+			m.cancelFunc()
 			m.cancelFunc = nil
 
 			homeModel := m.homeModel
@@ -226,7 +224,7 @@ func launchImport(m *HomeModel) tea.Model {
 		return m
 
 	case data.BookRecord:
-		i := DataImportModel{homeModel: m, ch: &ch, cancelFunc: &cancel, currentRecord: &val, waiting: false}
+		i := DataImportModel{homeModel: m, ch: &ch, cancelFunc: cancel, currentRecord: &val, waiting: false}
 		m.importModel = &i
 
 		return i
