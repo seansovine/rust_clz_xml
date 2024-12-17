@@ -2,9 +2,10 @@
 ///     https://docs.rs/quick-xml/latest/quick_xml/reader/struct.Reader.html
 use crate::data::{Author, Book, MainMessage};
 
+use std::io::BufRead;
+
 use quick_xml::events::{BytesEnd, BytesStart, BytesText, Event};
 use quick_xml::Reader;
-use std::io::BufRead;
 
 use tokio::sync::mpsc::Sender;
 
@@ -20,7 +21,11 @@ fn output(message: &str) {
 /// The state tracks what tag or section we're currently in.
 #[derive(PartialEq, Debug, Copy, Clone)]
 enum ParseState {
+    // All tags outside of book
+    OtherTag,
+    // Book info, contains the rest
     BookTag,
+    // Tags within book
     TitleTag,
     IsbnTag,
     CreditTag,
@@ -39,14 +44,14 @@ enum ParseState {
     PublisherSection,
     //
     PublisherNameTag,
-    // All tags outside of book
-    OtherTag,
 }
 
 // NOTE: We assume that the XML is well-formed and has the
-// correct structure, and we make no effort here to detect
-// and handle badly-formed XML.
+// correct structure, and we make no special effort here to
+// detect and handle badly-formed XML.
 
+/// Updates state on reading `start` tag.
+/// Creates a new `Book` if tag is "book".
 fn update_state_on_start(
     state: ParseState,
     bytes: &BytesStart,
@@ -120,6 +125,8 @@ fn update_state_on_start(
     new_state
 }
 
+/// Updates state on reading `end` tag.
+/// Indicates if book read is complete in second return val.
 fn update_state_on_end(state: ParseState, bytes: &BytesEnd) -> (ParseState, bool) {
     let q_name = bytes.name();
     let tag_name = std::str::from_utf8(q_name.as_ref()).unwrap();
@@ -166,9 +173,12 @@ fn update_state_on_end(state: ParseState, bytes: &BytesEnd) -> (ParseState, bool
     }
 }
 
+/// Handles text within tags. For some tags updates the state.
+/// This is necessary at least for the role id tag.
 fn handle_text(state: ParseState, text: &BytesText, current_book: &mut Option<Book>) -> ParseState {
     // NOTE: This allows an early return. The small gain in
     // efficiency it provides might not be worth the effort.
+    // However, it does document which tag text we use.
     match state {
         ParseState::TitleTag => {}
 
