@@ -300,7 +300,7 @@ pub fn read_xml<T: BufRead>(
                         }
                     }
 
-                    // Unhandled event types.
+                    // Unhandled quick-xml event types.
                     _ => output("Event okay but unknown type."),
                 }
             }

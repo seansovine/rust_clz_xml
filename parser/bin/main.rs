@@ -58,9 +58,10 @@ fn main() -> std::io::Result<()> {
         // Give the database thread its own runtime to
         // poll the futures of its asynchronous tasks.
         let runtime = Runtime::new().unwrap();
-        runtime.block_on(async {
-            database::database_main(database_receiver, main_sender_database).await
-        });
+        runtime.block_on(database::database_main(
+            database_receiver,
+            main_sender_database,
+        ));
     });
 
     let mut database_tasks = HashSet::new();
@@ -68,7 +69,10 @@ fn main() -> std::io::Result<()> {
     let parser_tag = "PARSER".yellow();
     let database_tag = "DATABASE".red();
 
-    // Read books until parser channel sends WorkComplete.
+    let mut parser_done: bool = false;
+
+    // Read books until all records sent from
+    // parser have been added to database.
     while let Some(message) = main_receiver.blocking_recv() {
         match message {
             MainMessage::ParserData(book) => {
@@ -77,6 +81,8 @@ fn main() -> std::io::Result<()> {
                     book.uid, book.title
                 );
 
+                // On each run, the parser assigns unique ids
+                // to each book record it extracts from the XML.
                 database_tasks.insert(book.uid);
                 // Send the book data to the database thread.
                 database_sender
@@ -86,14 +92,15 @@ fn main() -> std::io::Result<()> {
 
             MainMessage::ParserWorkComplete => {
                 println!("\n -- {} --\n", "Parser Finished.".green());
+
+                parser_done = true;
             }
 
             MainMessage::DatabaseResult(DatabaseResult { uid, message }) => {
                 println!("<< {database_tag}: Result for UID {}: {}", uid, message);
 
                 database_tasks.remove(&uid);
-
-                if database_tasks.is_empty() {
+                if parser_done && database_tasks.is_empty() {
                     // TODO: Use something like curses to keep these at bottom of terminal.
                     println!("\n -- {} --\n", "All database tasks complete.".blue());
 
@@ -107,11 +114,8 @@ fn main() -> std::io::Result<()> {
         }
     }
 
-    // (This may not be necessary.)
-    database_sender
-        .blocking_send(DatabaseMessage::ShutdownWhenReady)
-        .unwrap();
-    // Close channel to database.
+    // Close channel to database, allowing
+    // database thread to finish executing.
     drop(database_sender);
 
     let _parse_result = parser_handle.join().unwrap();

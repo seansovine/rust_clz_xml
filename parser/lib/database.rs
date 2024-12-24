@@ -97,7 +97,6 @@ pub async fn database_main(mut receiver: Receiver<DatabaseMessage>, sender: Send
             DatabaseMessage::Data(data) => {
                 // Insert into database.
                 let result = add_book(&data, &pool).await;
-
                 let message = result.unwrap_or_else(|message| message);
                 sender
                     .send(MainMessage::DatabaseResult(DatabaseResult {
@@ -108,7 +107,8 @@ pub async fn database_main(mut receiver: Receiver<DatabaseMessage>, sender: Send
                     .unwrap()
             }
 
-            _ => (), // TODO: Handle any other message types.
+            // Currently not expecting any other message types.
+            _ => panic!("Unexpected message received."),
         }
     }
 
