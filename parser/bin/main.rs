@@ -25,15 +25,10 @@ const CHANNEL_BUFFER_SIZE: usize = 1000;
 
 fn main() -> std::io::Result<()> {
     // Open XML file.
-    let args: Vec<String> = env::args().collect();
+    let _file_path = get_file()?;
 
-    if args.len() != 2 {
-        println!("{}", "Usage: ./clz-data <file>".red());
-
-        return Err(Error::new(ErrorKind::Other, "bad arguments"));
-    }
-
-    let file_path = &args[1];
+    // TODO: Temporarily hard-coding for testing convenience.
+    let file_path = "../data/book_2024-11-14_00-35-02-export.xml";
     let file = File::open(file_path)?;
 
     // Create buffered reader.
@@ -124,4 +119,22 @@ fn main() -> std::io::Result<()> {
     println!(" --> {} <--", "Done.".green());
 
     Ok(())
+}
+
+// -------------------
+// Arg parsing helper.
+
+fn get_file() -> std::io::Result<String> {
+    let args: Vec<String> = env::args().collect();
+
+    if args.len() != 2 {
+        println!("{}", "Usage: ./clz-data <file>".red());
+
+        return Err(Error::new(ErrorKind::Other, "bad arguments"));
+    }
+
+    println!("Loading file: {}", args[1]);
+
+    let file_path = &args[1];
+    Ok(file_path.to_string())
 }
