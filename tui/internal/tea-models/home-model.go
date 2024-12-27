@@ -38,7 +38,7 @@ func resetSchemaCmd(dbConn *dblib.DbConnection) tea.Msg {
 	return statusMsg{msg: &status}
 }
 
-// Implement our Bubbletea Model
+// Implement our Bubbletea home Model
 
 type HomeModel struct {
 	choices []string // available operations
@@ -104,7 +104,7 @@ func (m HomeModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 			case "Data Import":
 				if m.importModel == nil {
-					return launchImport(&m), nil
+					return launchImport(&m)
 				} else {
 					// Allows continuing an in-process import.
 					return m.importModel, nil
@@ -141,11 +141,11 @@ func (m HomeModel) View() string {
 		s += "\n\n"
 	}
 
-	// Send to the UI for rendering.
+	// Send to the framework and rendered to the UI.
 	return s
 }
 
-// Model creation helper
+// Model initialization helper
 
 func InitialModel() HomeModel {
 	return HomeModel{

@@ -3,6 +3,7 @@ package tea_models
 import (
 	"context"
 	"fmt"
+
 	tea "github.com/charmbracelet/bubbletea"
 
 	"tui/internal/data"
@@ -12,6 +13,11 @@ import (
 // --------------------------
 // Bubbletea model definition
 
+type parseData struct {
+	recordsFound int
+	recordsAdded int
+}
+
 type DataImportModel struct {
 	homeModel *HomeModel
 
@@ -20,6 +26,8 @@ type DataImportModel struct {
 
 	currentRecord *data.BookRecord
 	waiting       bool
+
+	parseData parseData
 }
 
 type initMsg struct {
@@ -37,9 +45,16 @@ func (m DataImportModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	// by-value receiver and we return our self.
 	m.homeModel.importModel = &m
 
+	var counts = func(m DataImportModel) string {
+		return fmt.Sprintf("%d books found -- %d books added",
+			m.parseData.recordsFound,
+			m.parseData.recordsAdded,
+		)
+	}
+
 	switch msg := msg.(type) {
 
-	case initMsg:
+	case initMsg: // Is this case ever hit?
 		statusMsg := "Parser started."
 		m.homeModel.statusMsg = &statusMsg
 		return m, nil
@@ -69,7 +84,8 @@ func (m DataImportModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		homeModel := m.homeModel
 		homeModel.importModel = nil
 
-		statusMsg := "Parser completed successfully."
+		statusMsg := "Parser completed successfully: "
+		statusMsg += counts(m)
 		homeModel.statusMsg = &statusMsg
 		homeModel.lastError = nil
 
@@ -77,6 +93,7 @@ func (m DataImportModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case data.BookRecord:
 		m.currentRecord = &msg
+		m.parseData.recordsFound += 1
 
 		return m, nil
 	}
@@ -94,10 +111,11 @@ func (m DataImportModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		switch msg.String() {
 		case "a":
 			if m.currentRecord != nil {
+				m.parseData.recordsAdded += 1
 				m.currentRecord = nil
 				m.waiting = false
 
-				// TODO: Implement "accept import" using database endpoint.
+				// TODO: Implement "accept import" using a database endpoint.
 			}
 
 		case "r":
@@ -117,7 +135,8 @@ func (m DataImportModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			homeModel := m.homeModel
 			homeModel.importModel = nil
 
-			statusMsg := "Parsing was cancelled."
+			statusMsg := "Parsing was cancelled: "
+			statusMsg += counts(m)
 			homeModel.statusMsg = &statusMsg
 			homeModel.lastError = nil
 
@@ -125,32 +144,38 @@ func (m DataImportModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 			// TODO: Add an "are you sure" state, that stores
 			// last message and asks for confirm, then if "yes"
-			// re-emits the message. (Think about this.)
+			// re-emits the message -- or something similar to this.
 		}
 	}
 
 	if !m.waiting && m.currentRecord == nil {
 		m.waiting = true
+
 		return m, func() tea.Msg {
-			ch := *m.ch
-
-			// Blocks until message received.
-			// Bubbletea will run this in a goroutine.
-			a := <-ch
-
-			switch val := a.(type) {
-			case data.BookRecord:
-				return val
-
-			case string:
-				return "Done"
-			}
-
-			return -1
+			return waitForRecord(*m.ch)
 		}
 	}
 
 	return m, nil
+}
+
+func waitForRecord(ch chan any) tea.Msg {
+	// We return this as a tea.Cmd, so
+	// Bubbletea will run it in a goroutine.
+
+	// Blocks until message received.
+	a := <-ch
+
+	switch val := a.(type) {
+	case data.BookRecord:
+		return val
+
+	case string:
+		return "Done"
+
+	default:
+		panic("Received unexpected type in waitForRecord.")
+	}
 }
 
 // ---------------
@@ -191,7 +216,7 @@ func (m DataImportModel) View() string {
 		s += "  (R) To cancel parsing all remaining records.\n\n"
 
 	} else if m.waiting == false {
-		s += "Press any key to start receiving.\n\n"
+		panic("Import model should have a book or be waiting.")
 	} else {
 		s += "Waiting to receive book.\n\n"
 	}
@@ -204,37 +229,27 @@ func (m DataImportModel) View() string {
 // ----------------------
 // For use by home model.
 
-func launchImport(m *HomeModel) tea.Model {
+func launchImport(m *HomeModel) (tea.Model, tea.Cmd) {
 	// Launch gRPC parser goroutine.
 	ch := make(chan any)
 	ctx, cancel := context.WithCancel(context.Background())
 	go grpc.Parser(ctx, ch)
 
-	// Try to get first record from parser;
-	// if there is none we go back to main menu.
-	a := <-ch
-	switch val := a.(type) {
-	case string:
-		statusMsg := "Parse found no records."
-		m.statusMsg = &statusMsg
-		m.importModel = nil
+	i := DataImportModel{
+		homeModel:     m,
+		ch:            &ch,
+		cancelFunc:    cancel,
+		currentRecord: nil,
+		waiting:       false,
+		parseData: parseData{recordsFound: 0,
+			recordsAdded: 0,
+		},
+	}
 
-		cancel()
+	m.importModel = &i
+	i.waiting = true
 
-		return m
-
-	case data.BookRecord:
-		i := DataImportModel{homeModel: m, ch: &ch, cancelFunc: cancel, currentRecord: &val, waiting: false}
-		m.importModel = &i
-
-		return i
-
-	default:
-		statusMsg := "An error has occurred."
-		m.statusMsg = &statusMsg
-
-		cancel()
-
-		return m
+	return i, func() tea.Msg {
+		return waitForRecord(ch)
 	}
 }
