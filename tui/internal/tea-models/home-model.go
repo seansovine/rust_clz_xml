@@ -54,7 +54,7 @@ type HomeModel struct {
 
 func (m HomeModel) Init() tea.Cmd {
 	// No initial command
-	return nil
+	return tea.ClearScreen
 }
 
 func (m HomeModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
