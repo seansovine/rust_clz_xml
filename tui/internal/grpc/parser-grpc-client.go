@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"log"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -16,24 +15,23 @@ import (
 
 var serverAddr = "localhost:10000"
 
-func makeClient() (*pb.ClzXmlClient, func()) {
+func makeClient() (*pb.ClzXmlClient, func() error, error) {
 	var opts []grpc.DialOption
 	opts = append(opts, grpc.WithTransportCredentials(insecure.NewCredentials()))
 
 	conn, err := grpc.NewClient(serverAddr, opts...)
 	if err != nil {
-		log.Fatalf("fail to dial: %v", err)
-	}
-	closer := func() {
-		err := conn.Close()
-		if err != nil {
-			log.Fatalf("close failed: %v", err)
-		}
+		return nil, nil, err
 	}
 
 	client := pb.NewClzXmlClient(conn)
 
-	return &client, closer
+	return &client, conn.Close, nil
+}
+
+func sendError(ch chan<- any, err error) {
+	errMsg := fmt.Sprintf("gRPC call failed with error: %v", err)
+	ch <- ParserError{message: errMsg}
 }
 
 type ParserError struct {
@@ -48,23 +46,35 @@ func (e ParserError) Error() string {
 func Parser(outChan chan<- any, controlChan <-chan any) {
 	defer close(outChan)
 
-	// TODO: Note sure if we need cancel here, given `defer closer()` below.
+	// TODO: Not sure if we need cancel here, given `defer closer()` below.
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	// Call the streaming endpoint.
+	// Set up the gRPC connection.
 
-	client, closer := makeClient()
-	defer closer()
+	client, closer, err := makeClient()
+	if err != nil {
+		sendError(outChan, err)
+
+		return
+	}
+
+	defer func() {
+		err := closer()
+		if err != nil {
+			sendError(outChan, err)
+		}
+	}()
 
 	file := pb.File{Path: "clz_data_sample.xml"}
 	stream, err := (*client).Parse(ctx, &file)
 	if err != nil {
-		errMsg := fmt.Sprintf("gRPC call failed with error: %v", err)
-		outChan <- ParserError{message: errMsg}
+		sendError(outChan, err)
 
 		return
 	}
+
+	// Call the streaming endpoint until EOF RXed.
 
 Loop:
 	for {
@@ -73,8 +83,7 @@ Loop:
 			break
 		}
 		if err != nil {
-			errMsg := fmt.Sprintf("gRPC receive failed with error: %v", err)
-			outChan <- ParserError{message: errMsg}
+			sendError(outChan, err)
 
 			break
 		}
@@ -103,7 +112,7 @@ Loop:
 			bookRecord.Publisher = &publisher
 		}
 
-		// Add authors
+		// Add authors.
 
 		for _, author := range record.GetAuthors() {
 			firstName := author.GetFirstName()
