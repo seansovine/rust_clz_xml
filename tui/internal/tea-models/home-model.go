@@ -13,7 +13,7 @@ import (
 // Messages and commands
 
 type errorMsg struct {
-	err *error
+	err error
 }
 
 type statusMsg struct {
@@ -23,7 +23,7 @@ type statusMsg struct {
 func resetDbCmd(dbConn *dblib.DbConnection) tea.Msg {
 	err := dbConn.EmptyDb()
 	if err != nil {
-		return errorMsg{err: &err}
+		return errorMsg{err: err}
 	}
 
 	status := "Empty database command succeeded."
@@ -33,7 +33,7 @@ func resetDbCmd(dbConn *dblib.DbConnection) tea.Msg {
 func resetSchemaCmd(dbConn *dblib.DbConnection) tea.Msg {
 	err := dbConn.ResetDb()
 	if err != nil {
-		return errorMsg{err: &err}
+		return errorMsg{err: err}
 	}
 
 	status := "Database schema reset command succeeded."
@@ -66,7 +66,7 @@ func (m HomeModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case errorMsg:
 		m.statusMsg = nil
-		m.lastError = msg.err
+		m.lastError = &msg.err
 
 	case statusMsg:
 		m.lastError = nil

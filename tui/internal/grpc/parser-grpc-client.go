@@ -2,6 +2,7 @@ package grpc
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"log"
 
@@ -35,6 +36,15 @@ func makeClient() (*pb.ClzXmlClient, func()) {
 	return &client, closer
 }
 
+type ParserError struct {
+	message string
+}
+
+// Implement error interface.
+func (e ParserError) Error() string {
+	return e.message
+}
+
 func Parser(ctx context.Context, ch chan<- any) {
 	defer close(ch)
 
@@ -46,7 +56,10 @@ func Parser(ctx context.Context, ch chan<- any) {
 	file := pb.File{Path: "clz_data_sample.xml"}
 	stream, err := (*client).Parse(ctx, &file)
 	if err != nil {
-		log.Fatalf("%v.Parse RPC call failed with error: %v", client, err)
+		errMsg := fmt.Sprintf("%v.Parse RPC call failed with error: %v", client, err)
+		ch <- ParserError{message: errMsg}
+
+		return
 	}
 
 	for {
@@ -55,7 +68,10 @@ func Parser(ctx context.Context, ch chan<- any) {
 			break
 		}
 		if err != nil {
-			log.Fatalf("%v.Parse(_) command failed with error: %v", client, err)
+			errMsg := fmt.Sprintf("%v.Parse RPC call failed with error: %v", client, err)
+			ch <- ParserError{message: errMsg}
+
+			break
 		}
 
 		bookRecord := data.BookRecord{

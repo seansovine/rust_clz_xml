@@ -48,13 +48,29 @@ func (m DataImportModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	switch msg := msg.(type) {
 
+	case errorMsg:
+		// Maybe not necessary, but shouldn't hurt.
+		m.cancelFunc()
+		m.cancelFunc = nil
+
+		homeModel := m.homeModel
+		homeModel.importModel = nil
+
+		// We forward the command to report the error.
+		homeModel.statusMsg = nil
+		homeModel.lastError = nil
+
+		return m.homeModel, func() tea.Msg {
+			return msg
+		}
+
 	case tea.KeyMsg:
 		switch msg.String() {
 
 		case "b":
 			// Go back to home menu.
-			statusMsg := "Parser running."
-			m.homeModel.statusMsg = &statusMsg
+			statusMessage := "Parser running."
+			m.homeModel.statusMsg = &statusMessage
 			m.homeModel.lastError = nil
 
 			return m.homeModel, nil
@@ -168,6 +184,9 @@ func waitForRecord(ch chan any) tea.Msg {
 
 	case data.BookRecord:
 		return val
+
+	case grpc.ParserError:
+		return errorMsg{val}
 
 	default:
 		panic("Received unexpected type in waitForRecord.")
