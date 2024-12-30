@@ -3,6 +3,8 @@ package tea_models
 import (
 	"fmt"
 
+	// For connecting to local database.
+	// TODO: We will add a version using gRPC.
 	dblib "db-util/src/lib"
 
 	tea "github.com/charmbracelet/bubbletea"
@@ -89,34 +91,41 @@ func (m HomeModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		// " " is space bar key.
 		case "enter", " ":
-			switch m.choices[m.cursor] {
-
-			// NOTE: The closures below capture our
-			// model's current database connection.
-
-			case "Reset Schema":
-				return m, func() tea.Msg {
-					return resetDbCmd(m.DbConn)
-				}
-
-			case "Reset Data":
-				return m, func() tea.Msg {
-					return resetSchemaCmd(m.DbConn)
-				}
-
-			case "Data Import":
-				if m.importModel == nil {
-					return launchImport(&m)
-				} else {
-					// Continuing an in-process import.
-					return m.importModel, nil
-				}
-			}
+			return m.handleCommandSelection()
 		}
 	}
 
 	// Return the updated model to the runtime.
 	return m, nil
+}
+
+func (m *HomeModel) handleCommandSelection() (tea.Model, tea.Cmd) {
+	switch m.choices[m.cursor] {
+
+	// NOTE: The closures below capture our
+	// model's current database connection.
+
+	case "Reset Schema":
+		return m, func() tea.Msg {
+			return resetSchemaCmd(m.DbConn)
+		}
+
+	case "Reset Data":
+		return m, func() tea.Msg {
+			return resetDbCmd(m.DbConn)
+		}
+
+	case "Data Import":
+		if m.importModel == nil {
+			return launchImport(m)
+		} else {
+			// Continuing an in-process import.
+			return m.importModel, nil
+		}
+
+	default:
+		return m, nil
+	}
 }
 
 func (m HomeModel) View() string {
