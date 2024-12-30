@@ -56,7 +56,7 @@ func Parser(ctx context.Context, ch chan<- any) {
 	file := pb.File{Path: "clz_data_sample.xml"}
 	stream, err := (*client).Parse(ctx, &file)
 	if err != nil {
-		errMsg := fmt.Sprintf("%v.Parse RPC call failed with error: %v", client, err)
+		errMsg := fmt.Sprintf("gRPC call failed with error: %v", err)
 		ch <- ParserError{message: errMsg}
 
 		return
@@ -68,7 +68,7 @@ func Parser(ctx context.Context, ch chan<- any) {
 			break
 		}
 		if err != nil {
-			errMsg := fmt.Sprintf("%v.Parse RPC call failed with error: %v", client, err)
+			errMsg := fmt.Sprintf("gRPC receive failed with error: %v", err)
 			ch <- ParserError{message: errMsg}
 
 			break
