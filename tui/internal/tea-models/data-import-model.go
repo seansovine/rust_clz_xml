@@ -27,7 +27,7 @@ type DataImportModel struct {
 	currentRecord *data.BookRecord
 	waiting       bool
 
-	parseData parseData
+	parseData
 }
 
 func (m DataImportModel) Init() tea.Cmd {
@@ -41,8 +41,8 @@ func (m DataImportModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	var counts = func(m DataImportModel) string {
 		return fmt.Sprintf("%d books found -- %d books added",
-			m.parseData.recordsFound,
-			m.parseData.recordsAdded,
+			m.recordsFound,
+			m.recordsAdded,
 		)
 	}
 
@@ -97,7 +97,7 @@ func (m DataImportModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case data.BookRecord:
 		m.currentRecord = &msg
-		m.parseData.recordsFound += 1
+		m.recordsFound += 1
 
 		return m, nil
 
@@ -118,7 +118,7 @@ func (m DataImportModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		case "a":
 			if m.currentRecord != nil {
-				m.parseData.recordsAdded += 1
+				m.recordsAdded += 1
 				m.currentRecord = nil
 				m.waiting = false
 
