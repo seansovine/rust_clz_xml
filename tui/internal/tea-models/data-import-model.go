@@ -1,7 +1,6 @@
 package tea_models
 
 import (
-	"context"
 	"fmt"
 
 	tea "github.com/charmbracelet/bubbletea"
@@ -21,8 +20,8 @@ type parseData struct {
 type DataImportModel struct {
 	homeModel *HomeModel
 
-	parserChan chan any
-	cancelFunc context.CancelFunc
+	parserChan  chan any
+	controlChan chan any
 
 	currentRecord *data.BookRecord
 	waiting       bool
@@ -34,25 +33,21 @@ func (m DataImportModel) Init() tea.Cmd {
 	return nil
 }
 
+func (m DataImportModel) countInfo() string {
+	return fmt.Sprintf("%d books found -- %d books added",
+		m.recordsFound,
+		m.recordsAdded,
+	)
+}
+
 func (m DataImportModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	// Update reference on home, because we have a
 	// by-value receiver and we return our self.
 	m.homeModel.importModel = &m
 
-	var counts = func(m DataImportModel) string {
-		return fmt.Sprintf("%d books found -- %d books added",
-			m.recordsFound,
-			m.recordsAdded,
-		)
-	}
-
 	switch msg := msg.(type) {
 
 	case errorMsg:
-		// Maybe not necessary, but shouldn't hurt.
-		m.cancelFunc()
-		m.cancelFunc = nil
-
 		homeModel := m.homeModel
 		homeModel.importModel = nil
 
@@ -81,15 +76,11 @@ func (m DataImportModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			panic("Unexpected message in DataImportModel: " + msg)
 		}
 
-		// Maybe not necessary, but shouldn't hurt.
-		m.cancelFunc()
-		m.cancelFunc = nil
-
 		homeModel := m.homeModel
 		homeModel.importModel = nil
 
 		statusMsg := "Parser completed successfully: "
-		statusMsg += counts(m)
+		statusMsg += m.countInfo()
 		homeModel.statusMsg = &statusMsg
 		homeModel.lastError = nil
 
@@ -136,25 +127,14 @@ func (m DataImportModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			// And maybe add confirm, since this could be dangerous!
 
 		case "R":
-			m.cancelFunc()
-			m.cancelFunc = nil
-
-			homeModel := m.homeModel
-			homeModel.importModel = nil
-
-			statusMsg := "Parsing was cancelled: "
-			statusMsg += counts(m)
-			homeModel.statusMsg = &statusMsg
-			homeModel.lastError = nil
-
-			return homeModel, nil
+			return m.handleShutdown()
 
 			// TODO: Add an "are you sure" state, that stores
 			// last message and asks for confirm, then if "yes"
 			// re-emits the message -- or something similar to this.
 
 		default:
-			panic("Unexpected message type in DataImportModel.")
+			// User pressed an unhandled key; carry on.
 		}
 	}
 
@@ -168,6 +148,38 @@ func (m DataImportModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	return m, nil
 }
+
+func (m DataImportModel) handleShutdown() (tea.Model, tea.Cmd) {
+	// Cancel parser; value sent is arbitrary.
+	m.controlChan <- "cancel"
+
+	// Eat all messages until the channel closes.
+	//
+	// NOTE: In most (all?) cases it appears the channel closes
+	// before any further BookRecord messages are received.
+	//
+	// NOTE: This works because the parser routine closes its out
+	// channel on shutdown. This ensures the goroutine is not leaked.
+
+	for val, ok := <-m.parserChan; ok; val, ok = <-m.parserChan {
+		if _, isBook := val.(data.BookRecord); isBook {
+			// Update count of books parser found.
+			m.recordsFound += 1
+		}
+	}
+
+	homeModel := m.homeModel
+	homeModel.importModel = nil
+
+	statusMsg := "Parsing was cancelled: "
+	statusMsg += m.countInfo()
+	homeModel.statusMsg = &statusMsg
+	homeModel.lastError = nil
+
+	return homeModel, nil
+}
+
+// Helper for parser receiver tea message.
 
 func waitForRecord(ch chan any) tea.Msg {
 	// We return this as a tea.Cmd, so
@@ -246,14 +258,16 @@ func (m DataImportModel) View() string {
 
 func launchImport(m *HomeModel) (tea.Model, tea.Cmd) {
 	// Launch gRPC parser goroutine.
-	ch := make(chan any)
-	ctx, cancel := context.WithCancel(context.Background())
-	go grpc.Parser(ctx, ch)
+	inCh := make(chan any)
+	// Send on an unbuffered channel blocks.
+	controlCh := make(chan any, 1)
+
+	go grpc.Parser(inCh, controlCh)
 
 	i := DataImportModel{
 		homeModel:     m,
-		parserChan:    ch,
-		cancelFunc:    cancel,
+		parserChan:    inCh,
+		controlChan:   controlCh,
 		currentRecord: nil,
 		waiting:       false,
 		parseData: parseData{
@@ -266,6 +280,6 @@ func launchImport(m *HomeModel) (tea.Model, tea.Cmd) {
 	i.waiting = true
 
 	return i, func() tea.Msg {
-		return waitForRecord(ch)
+		return waitForRecord(inCh)
 	}
 }

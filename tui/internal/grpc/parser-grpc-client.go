@@ -45,8 +45,12 @@ func (e ParserError) Error() string {
 	return e.message
 }
 
-func Parser(ctx context.Context, ch chan<- any) {
-	defer close(ch)
+func Parser(outChan chan<- any, controlChan <-chan any) {
+	defer close(outChan)
+
+	// TODO: Note sure if we need cancel here, given `defer closer()` below.
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 
 	// Call the streaming endpoint.
 
@@ -57,11 +61,12 @@ func Parser(ctx context.Context, ch chan<- any) {
 	stream, err := (*client).Parse(ctx, &file)
 	if err != nil {
 		errMsg := fmt.Sprintf("gRPC call failed with error: %v", err)
-		ch <- ParserError{message: errMsg}
+		outChan <- ParserError{message: errMsg}
 
 		return
 	}
 
+Loop:
 	for {
 		record, err := stream.Recv()
 		if err == io.EOF {
@@ -69,7 +74,7 @@ func Parser(ctx context.Context, ch chan<- any) {
 		}
 		if err != nil {
 			errMsg := fmt.Sprintf("gRPC receive failed with error: %v", err)
-			ch <- ParserError{message: errMsg}
+			outChan <- ParserError{message: errMsg}
 
 			break
 		}
@@ -109,7 +114,12 @@ func Parser(ctx context.Context, ch chan<- any) {
 			})
 		}
 
-		// Now send the record to Bubbletea goroutine.
-		ch <- bookRecord
+		select {
+		case <-controlChan:
+			break Loop
+
+		case outChan <- bookRecord:
+			// Nothing else to do here.
+		}
 	}
 }
