@@ -21,7 +21,7 @@ type parseData struct {
 type DataImportModel struct {
 	homeModel *HomeModel
 
-	ch         *chan any
+	parserChan chan any
 	cancelFunc context.CancelFunc
 
 	currentRecord *data.BookRecord
@@ -152,7 +152,7 @@ func (m DataImportModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.waiting = true
 
 		return m, func() tea.Msg {
-			return waitForRecord(*m.ch)
+			return waitForRecord(m.parserChan)
 		}
 	}
 
@@ -237,11 +237,12 @@ func launchImport(m *HomeModel) (tea.Model, tea.Cmd) {
 
 	i := DataImportModel{
 		homeModel:     m,
-		ch:            &ch,
+		parserChan:    ch,
 		cancelFunc:    cancel,
 		currentRecord: nil,
 		waiting:       false,
-		parseData: parseData{recordsFound: 0,
+		parseData: parseData{
+			recordsFound: 0,
 			recordsAdded: 0,
 		},
 	}
