@@ -38,11 +38,13 @@ func resetSchemaCmd(dbConn *dblib.DbConnection) tea.Msg {
 	return statusMsg{msg: &status}
 }
 
-// Implement our Bubbletea home Model
+// Implement our home model
 
 type HomeModel struct {
-	choices []string // available operations
-	cursor  int      // which item cursor is pointing at
+	// Available operations
+	choices []string
+	// Selected operation
+	cursor int
 
 	DbConn *dblib.DbConnection
 
@@ -54,7 +56,7 @@ type HomeModel struct {
 
 func (m HomeModel) Init() tea.Cmd {
 	// No initial command
-	return tea.ClearScreen
+	return nil
 }
 
 func (m HomeModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -68,12 +70,10 @@ func (m HomeModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.lastError = nil
 		m.statusMsg = msg.msg
 
-	// Handle key presses
+	// Handle key presses.
 	case tea.KeyMsg:
-
 		switch msg.String() {
 
-		// We override ctrl+c?
 		case "ctrl+c", "q":
 			return m, tea.Quit
 
@@ -87,10 +87,12 @@ func (m HomeModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.cursor++
 			}
 
-		// Enter and space bar
+		// " " is space bar key.
 		case "enter", " ":
 			switch m.choices[m.cursor] {
-			// Closures capture our Model's current DbConn.
+
+			// NOTE: The closures below capture our
+			// model's current database connection.
 
 			case "Reset Schema":
 				return m, func() tea.Msg {
@@ -106,23 +108,21 @@ func (m HomeModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				if m.importModel == nil {
 					return launchImport(&m)
 				} else {
-					// Allows continuing an in-process import.
+					// Continuing an in-process import.
 					return m.importModel, nil
 				}
 			}
 		}
 	}
 
-	// Return the updated Model to the Bubble Tea runtime for processing.
+	// Return the updated model to the runtime.
 	return m, nil
 }
 
 func (m HomeModel) View() string {
-	// Build screen text.
 	s := "Database management operations:\n\n"
 
 	for i, choice := range m.choices {
-
 		cursor := " "
 		if m.cursor == i {
 			cursor = ">"
@@ -141,7 +141,7 @@ func (m HomeModel) View() string {
 		s += "\n\n"
 	}
 
-	// Send to the framework and rendered to the UI.
+	// Send string to runtime for rendering.
 	return s
 }
 

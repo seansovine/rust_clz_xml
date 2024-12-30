@@ -59,7 +59,7 @@ func main() {
 	model := tea_models.InitialModel()
 	model.DbConn = dbConn
 
-	p := tea.NewProgram(model)
+	p := tea.NewProgram(model, tea.WithAltScreen())
 
 	if _, err := p.Run(); err != nil {
 		fmt.Printf("A error has occurred running Bubbletea: %v", err)
