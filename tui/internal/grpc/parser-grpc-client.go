@@ -93,10 +93,7 @@ func Parser(ctx context.Context, ch chan<- any) {
 			})
 		}
 
-		// Now send the record to Bubbletea goroutine
-
+		// Now send the record to Bubbletea goroutine.
 		ch <- bookRecord
 	}
-
-	ch <- "Done"
 }

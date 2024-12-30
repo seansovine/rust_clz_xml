@@ -30,13 +30,7 @@ type DataImportModel struct {
 	parseData parseData
 }
 
-type initMsg struct {
-	msg string
-}
-
 func (m DataImportModel) Init() tea.Cmd {
-	// This will never get called, because the
-	// initial model of the program is a HomeModel.
 	return nil
 }
 
@@ -54,13 +48,9 @@ func (m DataImportModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	switch msg := msg.(type) {
 
-	case initMsg: // Is this case ever hit?
-		statusMsg := "Parser started."
-		m.homeModel.statusMsg = &statusMsg
-		return m, nil
-
 	case tea.KeyMsg:
 		switch msg.String() {
+
 		case "b":
 			// Go back to home menu.
 			statusMsg := "Parser running."
@@ -70,13 +60,11 @@ func (m DataImportModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m.homeModel, nil
 		}
 
-	case int: // Debugging case; should *not* get here.
-		statusMsg := "Import model received unexpected message."
-		m.homeModel.statusMsg = &statusMsg
+	case string:
+		if msg != "Done" {
+			panic("Unexpected message in DataImportModel: " + msg)
+		}
 
-		return m.homeModel, nil
-
-	case string: // "Done" case.
 		// Maybe not necessary, but shouldn't hurt.
 		m.cancelFunc()
 		m.cancelFunc = nil
@@ -96,6 +84,9 @@ func (m DataImportModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.parseData.recordsFound += 1
 
 		return m, nil
+
+	default:
+		panic("Unexpected message type in DataImportModel.")
 	}
 
 	// If we're waiting and haven't received a book
@@ -107,8 +98,8 @@ func (m DataImportModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 
 	case tea.KeyMsg:
-
 		switch msg.String() {
+
 		case "a":
 			if m.currentRecord != nil {
 				m.parseData.recordsAdded += 1
@@ -145,6 +136,9 @@ func (m DataImportModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			// TODO: Add an "are you sure" state, that stores
 			// last message and asks for confirm, then if "yes"
 			// re-emits the message -- or something similar to this.
+
+		default:
+			panic("Unexpected message type in DataImportModel.")
 		}
 	}
 
@@ -163,15 +157,17 @@ func waitForRecord(ch chan any) tea.Msg {
 	// We return this as a tea.Cmd, so
 	// Bubbletea will run it in a goroutine.
 
-	// Blocks until message received.
-	a := <-ch
+	// Blocks until message received or channel is closed.
+	a, ok := <-ch
+
+	if !ok {
+		return "Done"
+	}
 
 	switch val := a.(type) {
+
 	case data.BookRecord:
 		return val
-
-	case string:
-		return "Done"
 
 	default:
 		panic("Received unexpected type in waitForRecord.")
