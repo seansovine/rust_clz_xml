@@ -56,7 +56,6 @@ async fn add_book(book: Book, pool: MySqlPool) -> (Result<String, String>, Book)
             Err(e) => {
                 let error_string = format!("{}", e);
                 result_message = format!("{result_message} With error: {error_string}");
-
                 continue;
             }
 
@@ -74,7 +73,6 @@ async fn add_book(book: Book, pool: MySqlPool) -> (Result<String, String>, Book)
             Err(e) => {
                 let error_string = format!("{}", e);
                 result_message = format!("{result_message} With error: {error_string}");
-
                 // TODO: Consider rolling back author insert if this fails.
             }
 
@@ -152,8 +150,7 @@ pub async fn database_main(mut receiver: Receiver<DatabaseMessage>, sender: Send
 // ---------------------------------------------------
 // Helpers for receiving messages and sending results.
 
-/// Check channel receiver and queue up book
-/// data received for insert.
+/// Check channel receiver and queue up book data received for insert.
 fn handle_message(
     msg_opt: Option<DatabaseMessage>,
     queue: &mut VecDeque<Book>,
@@ -176,8 +173,7 @@ fn handle_message(
     }
 }
 
-/// Handle results when a database add task
-/// completes and notify main thread.
+/// Handle results when a database add task completes and notify main thread.
 async fn handle_result(
     val: Option<Result<(Result<String, String>, Book), JoinError>>,
     num_tasks: &mut u32,
@@ -194,8 +190,7 @@ async fn handle_result(
 
             *num_tasks -= 1;
 
-            // Notify main thread that task is complete,
-            // with success and/or error message.
+            // Notify main thread that task is complete, with success and/or error message.
             sender
                 .send(MainMessage::DatabaseResult(database_result))
                 .await

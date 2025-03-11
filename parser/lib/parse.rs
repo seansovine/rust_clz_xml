@@ -32,17 +32,14 @@ enum ParseState {
     RoleIdTag,
     // Author info
     AuthorSection,
-    //
     AuthorFirstName,
     AuthorLastName,
     // Date info
     PublicationDateSection,
     PublicationYearSection,
-    //
     PublicationYearDisplayTag,
     // Publisher info
     PublisherSection,
-    //
     PublisherNameTag,
 }
 
@@ -65,49 +62,38 @@ fn update_state_on_start(
     let new_state = match state {
         ParseState::BookTag => match tag_name {
             "title" => ParseState::TitleTag,
-
             "isbn" => ParseState::IsbnTag,
-
             "credit" => ParseState::CreditTag,
-
             "publicationdate" => ParseState::PublicationDateSection,
-
             "publisher" => ParseState::PublisherSection,
-
             _ => ParseState::BookTag,
         },
 
         ParseState::CreditTag => match tag_name {
             "roleid" => ParseState::RoleIdTag,
-
             _ => ParseState::CreditTag,
         },
 
         ParseState::AuthorSection => match tag_name {
             "firstname" => ParseState::AuthorFirstName,
-
             "lastname" => ParseState::AuthorLastName,
-
             _ => ParseState::AuthorSection,
         },
 
         ParseState::PublicationDateSection => match tag_name {
             "year" => ParseState::PublicationYearSection,
-
             _ => ParseState::PublicationDateSection,
         },
 
         ParseState::PublicationYearSection => match tag_name {
             "displayname" => ParseState::PublicationYearDisplayTag,
-
             _ => ParseState::PublicationYearSection,
         },
 
         ParseState::PublisherSection => match tag_name {
             "displayname" => ParseState::PublisherNameTag,
-
             _ => ParseState::PublisherSection,
-        }
+        },
 
         _ => match tag_name {
             "book" => {
@@ -117,7 +103,6 @@ fn update_state_on_start(
 
                 ParseState::BookTag
             }
-
             _ => ParseState::OtherTag,
         },
     };
@@ -135,39 +120,31 @@ fn update_state_on_end(state: ParseState, bytes: &BytesEnd) -> (ParseState, bool
     match state {
         ParseState::BookTag => match tag_name {
             "book" => (ParseState::OtherTag, true),
-
             _ => (ParseState::BookTag, false),
         },
 
         ParseState::TitleTag => (ParseState::BookTag, false),
-
         ParseState::IsbnTag => (ParseState::BookTag, false),
-
         ParseState::CreditTag => match tag_name {
             "credit" => (ParseState::BookTag, false),
-
             _ => (ParseState::CreditTag, false),
         },
 
         ParseState::RoleIdTag => (ParseState::CreditTag, false),
-
         ParseState::AuthorSection => match tag_name {
             "credit" => (ParseState::BookTag, false),
-
             _ => (ParseState::AuthorSection, false),
         },
 
         ParseState::PublicationDateSection => match tag_name {
             "publicationdate" => (ParseState::BookTag, false),
-
             _ => (ParseState::PublicationDateSection, false),
         },
 
         ParseState::PublisherSection => match tag_name {
             "publisher" => (ParseState::BookTag, false),
-
             _ => (ParseState::PublisherSection, false),
-        }
+        },
 
         _ => (state, false),
     }
@@ -175,25 +152,22 @@ fn update_state_on_end(state: ParseState, bytes: &BytesEnd) -> (ParseState, bool
 
 /// Handles text within tags. For some tags updates the state.
 /// This is necessary at least for the role id tag.
-fn handle_text(state: ParseState, text: &BytesText, current_book: &mut Option<Book>) -> ParseState {
+fn handle_text(
+    mut state: ParseState,
+    text: &BytesText,
+    current_book: &mut Option<Book>,
+) -> ParseState {
     // NOTE: This allows an early return. The small gain in
     // efficiency it provides might not be worth the effort.
     // However, it does document which tag text we use.
     match state {
         ParseState::TitleTag => {}
-
         ParseState::IsbnTag => {}
-
         ParseState::RoleIdTag => {}
-
         ParseState::AuthorFirstName => {}
-
         ParseState::AuthorLastName => {}
-
         ParseState::PublicationYearDisplayTag => {}
-
         ParseState::PublisherNameTag => {}
-
         _ => return state,
     }
 
@@ -216,24 +190,22 @@ fn handle_text(state: ParseState, text: &BytesText, current_book: &mut Option<Bo
                     .unwrap()
                     .authors
                     .push(Author::default());
-                return ParseState::AuthorSection;
+                state = ParseState::AuthorSection;
             } else {
-                return ParseState::CreditTag;
+                state = ParseState::CreditTag;
             }
         }
 
         ParseState::AuthorFirstName => {
             let new_author = current_book.as_mut().unwrap().authors.last_mut().unwrap();
             new_author.first_name = text;
-
-            return ParseState::AuthorSection;
+            state = ParseState::AuthorSection;
         }
 
         ParseState::AuthorLastName => {
             let new_author = current_book.as_mut().unwrap().authors.last_mut().unwrap();
             new_author.last_name = text;
-
-            return ParseState::AuthorSection;
+            state = ParseState::AuthorSection;
         }
 
         ParseState::PublicationYearDisplayTag => {
@@ -243,15 +215,12 @@ fn handle_text(state: ParseState, text: &BytesText, current_book: &mut Option<Bo
                 Err(_) => None,
             };
             current_book.as_mut().unwrap().year = year;
-
-            // This is all we need from the publication date section.
-            return ParseState::PublicationDateSection;
+            state = ParseState::PublicationDateSection;
         }
 
         ParseState::PublisherNameTag => {
             current_book.as_mut().unwrap().publisher = Some(text);
-
-            return ParseState::PublisherSection;
+            state = ParseState::PublisherSection;
         }
 
         _ => (),
@@ -271,16 +240,12 @@ pub fn read_xml<T: BufRead>(
     let mut parse_state: ParseState = ParseState::OtherTag;
     let mut current_book: Option<Book> = None;
 
-    // Based on the example from the quick-xml docs.
     loop {
-        let result = reader.read_event_into(&mut buffer);
-        match result {
+        match reader.read_event_into(&mut buffer) {
             Err(e) => panic!("Error at position {}: {:?}", reader.error_position(), e),
-
             Ok(event) => {
                 match event {
                     Event::Eof => break,
-
                     Event::Start(e) => {
                         parse_state =
                             update_state_on_start(parse_state, &e, &mut current_book, &mut count);
@@ -293,14 +258,12 @@ pub fn read_xml<T: BufRead>(
                     Event::End(e) => {
                         let ready_to_send;
                         (parse_state, ready_to_send) = update_state_on_end(parse_state, &e);
-
                         if ready_to_send {
                             let message = MainMessage::ParserData(current_book.take().unwrap());
                             sender.blocking_send(message).unwrap()
                         }
                     }
 
-                    // Unhandled quick-xml event types.
                     _ => output("Event okay but unknown type."),
                 }
             }
@@ -315,8 +278,9 @@ pub fn read_xml<T: BufRead>(
             count
         )))
         .unwrap();
-
-    sender.blocking_send(MainMessage::ParserWorkComplete).unwrap();
+    sender
+        .blocking_send(MainMessage::ParserWorkComplete)
+        .unwrap();
 
     Ok(())
 }
