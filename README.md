@@ -24,7 +24,7 @@ handles console output. This allows some work to be done concurrently,
 but it also helps give the program a simpler and clearer structure.
 
 See [parser/README](parser/README.md) for more notes on
-the evolving design of this program.
+the evolving design of this program. Here are the [parser](parser/lib/parse.rs) and [database](parser/lib/database.rs) modules.
 
 ## Database and Docker Compose
 
