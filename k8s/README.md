@@ -116,7 +116,7 @@ minikube stop
 minikube delete
 ```
 
-## Connecting the our to the Minikube app
+## Connecting to the Minikube app
 
 Eventually we will consider adding the database to our pod as a stateful
 service, but for now we will keep running it locally. We can do this
